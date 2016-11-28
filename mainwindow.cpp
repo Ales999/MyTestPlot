@@ -1,3 +1,4 @@
+#include "QTime"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
@@ -7,6 +8,8 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     lastPush = 20;
+    QTime midnight(0,0,0);
+    qsrand( midnight.secsTo(QTime::currentTime()) );
     //setGeometry(400, 250, 542, 390);
     //value2 = new QVector<double>(500);
     setupPlot();
@@ -75,8 +78,8 @@ void MainWindow::realtimeMyDataSlot()
     // calculate two new data points:
     double key = sqtime.elapsed()/1000.0; // time elapsed since start of demo, in seconds
     static double lastPointKey = 0;
-    double testrnd;
-    double mytmp;
+    //double testrnd;
+    //double mytmp;
 
     //static double lastPointKey = 0;
     //double currentTime = curtime.toTime_t();;
@@ -86,53 +89,23 @@ void MainWindow::realtimeMyDataSlot()
     //qsrand(9);
     if (key-lastPointKey > 0.02) // at most add point every 20 ms
     {
-      // add data to lines:
-      //ui->customPlot->graph(0)->addData(key, qSin(key)+qrand()/(double)RAND_MAX*1*qSin(key/0.3843));
-      //ui->customPlot->graph(1)->addData(key, qCos(key)+qrand()/(double)RAND_MAX*0.5*qSin(key/0.4364));
-      //this->value2 += 0.3;
-
         //  Удалить последний
-        if( !value2.isEmpty() )
+        if( !this->volData.isEmpty() )
         {
-            currentData = value2.last();
-            if (value2.size() > 500)
+            currentData = this->volData.last();
+            if (volData.size() > 500)
                 {
-                    value2.removeFirst();
-                    //value2.removeFirst();
-                    //value2.removeFirst();
-                    //value2.removeFirst();
+                   this->volTime.removeFirst();
+                   this->volData.removeFirst();
                 }
         }
 
         // Добавить данные в конец вектора
-        //value2.push_back( qSin(key)+qrand()/(double)RAND_MAX*1*qSin(key/0.3843) );
-        //
-        //qsrand(9);
-        testrnd =  (qrand()/(double)RAND_MAX-0.5)*3;
-        mytmp = lastPush;
-        //for(int n=0; n<4; ++n ) {
-        //this->time += 600;
-        this->time.push_front(currentTime.toTime_t());
+        this->volTime.push_front(currentTime.toTime_t());
 
-            lastPush = testrnd + mytmp; //(qrand()/(double)RAND_MAX-0.5)*3; //  ((qrand()/(double)RAND_MAX-0.5)*3);
-            value2.push_back( lastPush );
+        lastPush += (qrand()/(double)RAND_MAX-0.5)*3;
+        this->volData.push_back( lastPush );
 
-            /*
-        value2.push_back( currentData + ((qrand()/(double)RAND_MAX-0.5)*3) );
-        currentData = value2.last();
-        value2.push_back( currentData + ((qrand()/(double)RAND_MAX-0.5)*3) );
-        currentData = value2.last();
-        value2.push_back( currentData + ((qrand()/(double)RAND_MAX-0.5)*3) );
-        currentData = value2.last();
-        value2.push_back( currentData + ((qrand()/(double)RAND_MAX-0.5)*3) );
-        */
-        //}
-
-
-
-      // rescale value (vertical) axis to fit the current data:
-      //ui->customPlot->graph(0)->rescaleValueAxis();
-      //ui->customPlot->graph(1)->rescaleValueAxis(true);
       lastPointKey = key;
     }
 
@@ -142,12 +115,12 @@ void MainWindow::realtimeMyDataSlot()
     ui->customPlot->replot();
 
 
-    if(!this->value2.isEmpty())
+    if(!this->volData.isEmpty())
     {
         //
         ui->statusBar->showMessage(
           QString("Value2: %1")
-                .arg(this->value2.last())
+                .arg(this->volData.last())
                 ,0);
 
     }
@@ -164,45 +137,105 @@ void MainWindow::setupRealMyTimePlot(QCustomPlot *customPlot)
 {
     demoName = "Моя проба";
 
-    int n = 500;
-    qsrand(9);
-    //QVector<double> this->value2;
+    QVector<double> volData, volTime;
+
     QDateTime start = QDateTime::currentDateTime(); //  QDateTime(QDate(2016, 11, 27));
-    start.setTimeSpec(Qt::UTC);
-    double startTime = start.toTime_t();
+    //start.setTimeSpec(Qt::UTC);
+    double startTime = start.toLocalTime().toTime_t();
 
-    //value2 = new QVector(500);
-    //value2[0]=0;
-    value2.setSharable(true); // .size() =500;
+    //volTime.setSharable(true);
+    //volData.setSharable(true);
 
-    time.push_front(startTime);
-    value2.push_front(20);
+    // Первый заброс данных во время и данные
+    volTime.push_front(startTime);
+    volData.push_front(lastPush);
 
-    //QVector<double> time(n); //, value2(n);
+    // test add
+    for (int i=1; i<20; i++) {
+        lastPush += (qrand()/(double)RAND_MAX-0.5)*3;
+        volData.push_front( lastPush );
+        volTime.push_front(startTime+60*1+i);
+    }
+
+    volData.push_front( lastPush );
+    volTime.push_front(startTime+60*2);
+    for (int i=1; i<20; i++) {
+        lastPush += (qrand()/(double)RAND_MAX-0.5)*3;
+        volData.push_front( lastPush );
+        volTime.push_front(startTime+60*2+i);
+    }
+
+    volData.push_front( lastPush );
+    volTime.push_front(startTime+60*3);
+    for (int i=1; i<20; i++) {
+        lastPush += (qrand()/(double)RAND_MAX-0.5)*3;
+        volData.push_front( lastPush );
+        volTime.push_front(startTime+60*3+i);
+    }
+
+    volData.push_front( lastPush );
+    volTime.push_front(startTime+60*4);
+    for (int i=1; i<20; i++) {
+        lastPush += (qrand()/(double)RAND_MAX-0.5)*3;
+        volData.push_front( lastPush );
+        volTime.push_front(startTime+60*4+i);
+    }
+
+    volData.push_front( lastPush );
+    volTime.push_front(startTime+60*5);
+    for (int i=1; i<20; i++) {
+        lastPush += (qrand()/(double)RAND_MAX-0.5)*3;
+        volData.push_front( lastPush );
+        volTime.push_front(startTime+60*5+i);
+    }
+
+
 
     //static QTime time(QTime::currentTime());
     // calculate two new data points:
     //double key = time.elapsed()/1000.0; // time elapsed since start of demo, in seconds
     double binSize = 600; //  3600*24; // bin data in 1 day intervals
+/*
+    // create candlestick chart:
+    QCPFinancial *candlesticks = new QCPFinancial(customPlot->xAxis, customPlot->yAxis);
+    candlesticks->setName("Candlestick");
+    candlesticks->setChartStyle(QCPFinancial::csCandlestick);
+    candlesticks->data()->set(QCPFinancial::timeSeriesToOhlc(volTime, volData, binSize, startTime));
+     candlesticks->setWidth(binSize*0.85); //candlesticks->setWidth(binSize*0.9);
+    candlesticks->setTwoColored(true);
+    candlesticks->setBrushPositive(QColor(245, 245, 245));
+    candlesticks->setBrushNegative(QColor(40, 40, 40));
+    candlesticks->setPenPositive(QPen(QColor(0, 0, 0)));
+    candlesticks->setPenNegative(QPen(QColor(0, 0, 0)));
+*/
 
-    //static double lastPointKey = 0;
 
+
+    // ohls for 2.0-beta
     QCPFinancial *ohlc = new QCPFinancial(customPlot->xAxis, customPlot->yAxis);
     ohlc->setName("OHLC");
     ohlc->setChartStyle(QCPFinancial::csOhlc);
-    ohlc->data()->set(QCPFinancial::timeSeriesToOhlc(this->time, this->value2, binSize/3.0, startTime)); // divide binSize by 3 just to make the ohlc bars a bit denser
+    ohlc->data()->set(QCPFinancial::timeSeriesToOhlc(volTime, volData, binSize/10.0, startTime)); // divide binSize by 3 just to make the ohlc bars a bit denser
+    ohlc->setWidth(binSize*0.08); // ohlc->setWidth(binSize*0.2);
+    ohlc->setTwoColored(true);
+
+/*
+    // ohlc for stable version
+    QCPFinancial *ohlc = new QCPFinancial(customPlot->xAxis, customPlot->yAxis);
+    customPlot->addPlottable(ohlc);
+    QCPFinancialDataMap data2 = QCPFinancial::timeSeriesToOhlc(volTime, volData, binSize/3.0, startTime); // divide binSize by 3 just to make the ohlc bars a bit denser
+    ohlc->setName("OHLC");
+    ohlc->setChartStyle(QCPFinancial::csOhlc);
+    ohlc->setData(&data2, true);
     ohlc->setWidth(binSize*0.2);
     ohlc->setTwoColored(true);
+*/
+
 
     // configure axes of both main and bottom axis rect:
     QSharedPointer<QCPAxisTickerDateTime> dateTimeTicker(new QCPAxisTickerDateTime);
-    dateTimeTicker->setDateTimeSpec(Qt::UTC);
-    dateTimeTicker->setDateTimeFormat("dd. MMMM");
-    //volumeAxisRect->axis(QCPAxis::atBottom)->setTicker(dateTimeTicker);
-    //volumeAxisRect->axis(QCPAxis::atBottom)->setTickLabelRotation(15);
-    customPlot->xAxis->setBasePen(Qt::NoPen);
-    customPlot->xAxis->setTickLabels(false);
-    customPlot->xAxis->setTicks(false); // only want vertical grid in main axis rect, so hide xAxis backbone, ticks, and labels
+    //dateTimeTicker->setDateTimeSpec(Qt::UTC);
+    dateTimeTicker->setDateTimeFormat("hh:mm.ss");
     customPlot->xAxis->setTicker(dateTimeTicker);
     customPlot->rescaleAxes();
     customPlot->xAxis->scaleRange(1.025, customPlot->xAxis->range().center());
@@ -213,8 +246,12 @@ void MainWindow::setupRealMyTimePlot(QCustomPlot *customPlot)
     connect(customPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->xAxis2, SLOT(setRange(QCPRange)));
     connect(customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->yAxis2, SLOT(setRange(QCPRange)));
 
-    connect(&dataTimer, SIGNAL(timeout()), this, SLOT(realtimeMyDataSlot()));
-    dataTimer.start(1000); // Interval 0 means to refresh as fast as possible
+    //connect(&dataTimer, SIGNAL(timeout()), this, SLOT(realtimeMyDataSlot()));
+    //dataTimer.start(1000); // Interval 0 means to refresh as fast as possible
+
+    //QCPMarginGroup *group = new QCPMarginGroup(customPlot);
+    //customPlot->axisRect()->setMarginGroup(QCP::msLeft|QCP::msRight, group);
+    //volumeAxisRect->setMarginGroup(QCP::msLeft|QCP::msRight, group);
 
 }
 
@@ -301,8 +338,6 @@ void MainWindow::setupFinPlot(QCustomPlot *customPlot)
       ohlc->data()->set(QCPFinancial::timeSeriesToOhlc(time, value2, binSize/3.0, startTime)); // divide binSize by 3 just to make the ohlc bars a bit denser
       ohlc->setWidth(binSize*0.2);
       ohlc->setTwoColored(true);
-
-      //ohlc->
 
       /*
       // create bottom axis rect for volume bar chart:

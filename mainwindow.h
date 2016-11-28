@@ -36,7 +36,7 @@ private:
     QString demoName;
     QTimer dataTimer;
     //int n = 500;
-    QVector<double> time, value2; // (500);
+    QVector<double> volTime, volData; // (500);
     ///
     /// \brief lastPush - Последнее значение добавленное
     ///
