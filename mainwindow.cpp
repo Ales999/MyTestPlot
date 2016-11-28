@@ -10,7 +10,7 @@ MainWindow::MainWindow(QWidget *parent) :
     lastPush = 20;
     QTime midnight(0,0,0);
     qsrand( midnight.secsTo(QTime::currentTime()) );
-    //setGeometry(400, 250, 542, 390);
+    setGeometry(400, 250, 542, 390);
     //value2 = new QVector<double>(500);
     setupPlot();
 }
@@ -138,10 +138,13 @@ void MainWindow::setupRealMyTimePlot(QCustomPlot *customPlot)
     demoName = "Моя проба";
 
     QVector<double> volData, volTime;
+    const double timeShift = 60;
 
-    QDateTime start = QDateTime::currentDateTime(); //  QDateTime(QDate(2016, 11, 27));
-    //start.setTimeSpec(Qt::UTC);
-    double startTime = start.toLocalTime().toTime_t();
+    //QDateTime tstart = QDateTime::currentDateTime(); //  QDateTime(QDate(2016, 11, 27));
+    QDateTime tstart = QDateTime::QDateTime(QDate(2016, 11, 27));
+    tstart.setTimeSpec(Qt::UTC);
+    //double startTime = tstart.toLocalTime().toTime_t();
+    double startTime = tstart.toTime_t();
 
     //volTime.setSharable(true);
     //volData.setSharable(true);
@@ -154,111 +157,74 @@ void MainWindow::setupRealMyTimePlot(QCustomPlot *customPlot)
     for (int i=1; i<20; i++) {
         lastPush += (qrand()/(double)RAND_MAX-0.5)*3;
         volData.push_front( lastPush );
-        volTime.push_front(startTime+60*1+i);
+        volTime.push_front(startTime+timeShift*1+i*2);
     }
 
     volData.push_front( lastPush );
-    volTime.push_front(startTime+60*2);
+    volTime.push_front(startTime+timeShift*2);
     for (int i=1; i<20; i++) {
         lastPush += (qrand()/(double)RAND_MAX-0.5)*3;
         volData.push_front( lastPush );
-        volTime.push_front(startTime+60*2+i);
+        volTime.push_front(startTime+timeShift*2+i*2);
     }
 
     volData.push_front( lastPush );
-    volTime.push_front(startTime+60*3);
+    volTime.push_front(startTime+timeShift*3);
     for (int i=1; i<20; i++) {
         lastPush += (qrand()/(double)RAND_MAX-0.5)*3;
         volData.push_front( lastPush );
-        volTime.push_front(startTime+60*3+i);
+        volTime.push_front(startTime+timeShift*3+i*2);
     }
 
     volData.push_front( lastPush );
-    volTime.push_front(startTime+60*4);
+    volTime.push_front(startTime+timeShift*4);
     for (int i=1; i<20; i++) {
         lastPush += (qrand()/(double)RAND_MAX-0.5)*3;
         volData.push_front( lastPush );
-        volTime.push_front(startTime+60*4+i);
+        volTime.push_front(startTime+timeShift*4+i*2);
     }
 
     volData.push_front( lastPush );
-    volTime.push_front(startTime+60*5);
+    volTime.push_front(startTime+timeShift*5);
     for (int i=1; i<20; i++) {
         lastPush += (qrand()/(double)RAND_MAX-0.5)*3;
         volData.push_front( lastPush );
-        volTime.push_front(startTime+60*5+i);
+        volTime.push_front(startTime+timeShift*5+i*2);
     }
 
 
-
-    //static QTime time(QTime::currentTime());
-    // calculate two new data points:
-    //double key = time.elapsed()/1000.0; // time elapsed since start of demo, in seconds
-    double binSize = 600; //  3600*24; // bin data in 1 day intervals
-/*
-    // create candlestick chart:
-    QCPFinancial *candlesticks = new QCPFinancial(customPlot->xAxis, customPlot->yAxis);
-    candlesticks->setName("Candlestick");
-    candlesticks->setChartStyle(QCPFinancial::csCandlestick);
-    candlesticks->data()->set(QCPFinancial::timeSeriesToOhlc(volTime, volData, binSize, startTime));
-     candlesticks->setWidth(binSize*0.85); //candlesticks->setWidth(binSize*0.9);
-    candlesticks->setTwoColored(true);
-    candlesticks->setBrushPositive(QColor(245, 245, 245));
-    candlesticks->setBrushNegative(QColor(40, 40, 40));
-    candlesticks->setPenPositive(QPen(QColor(0, 0, 0)));
-    candlesticks->setPenNegative(QPen(QColor(0, 0, 0)));
-*/
-
-
-/*
-    // ohls for 2.0-beta
-    QCPFinancial *ohlc = new QCPFinancial(customPlot->xAxis, customPlot->yAxis);
-    ohlc->setName("OHLC");
-    ohlc->setChartStyle(QCPFinancial::csOhlc);
-    ohlc->data()->set(QCPFinancial::timeSeriesToOhlc(volTime, volData, binSize/10.0, startTime)); // divide binSize by 3 just to make the ohlc bars a bit denser
-    ohlc->setWidth(binSize*0.08); // ohlc->setWidth(binSize*0.2);
-    ohlc->setTwoColored(true);
-*/
+    double binSize = 60; //  3600*24; // bin data in 1 day intervals
+    double timeBinSize = binSize/5.0;
 
     // ohlc for stable version
     QCPFinancial *ohlc = new QCPFinancial(customPlot->xAxis, customPlot->yAxis);
     customPlot->addPlottable(ohlc);
-    QCPFinancialDataMap data2 = QCPFinancial::timeSeriesToOhlc(volTime, volData, binSize/3.0, startTime); // divide binSize by 3 just to make the ohlc bars a bit denser
+    QCPFinancialDataMap data2 = QCPFinancial::timeSeriesToOhlc(volTime, volData, timeBinSize, startTime); // divide binSize by 3 just to make the ohlc bars a bit denser
     ohlc->setName("OHLC");
     ohlc->setChartStyle(QCPFinancial::csOhlc);
     ohlc->setData(&data2, true);
-    ohlc->setWidth(binSize*0.2);
+    ohlc->setWidth(binSize*0.08);
     ohlc->setTwoColored(true);
 
 
-    // configure axes of both main and bottom axis rect:
-//    QSharedPointer<QCPAxisTickerDateTime> dateTimeTicker(new QCPAxisTickerDateTime);
-//    //dateTimeTicker->setDateTimeSpec(Qt::UTC);
-//    dateTimeTicker->setDateTimeFormat("hh:mm.ss");
-//    customPlot->xAxis->setTicker(dateTimeTicker);
-//    customPlot->rescaleAxes();
-//    customPlot->xAxis->scaleRange(1.025, customPlot->xAxis->range().center());
-//    customPlot->yAxis->scaleRange(1.1, customPlot->yAxis->range().center());
-
     customPlot->xAxis->setAutoTickStep(false);
     //customPlot->xAxis->setTickStep(3600*24*4); // 4 day tickstep
-    customPlot->xAxis->setTickStep(600); // 4 day tickstep
+    customPlot->xAxis->setTickStep(120); // 4 day tickstep
+    //volumeAxisRect->axis(QCPAxis::atBottom)->setTickLabelType(QCPAxis::ltDateTime);
+    customPlot->xAxis->setTickLabelType(QCPAxis::ltDateTime);
+    customPlot->xAxis->setDateTimeFormat("dd:hh:mm\nss:zzz");
     customPlot->rescaleAxes();
     customPlot->xAxis->scaleRange(1.025, customPlot->xAxis->range().center());
     customPlot->yAxis->scaleRange(1.1, customPlot->yAxis->range().center());
-
 
 
     // make left and bottom axes transfer their ranges to right and top axes:
     connect(customPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->xAxis2, SLOT(setRange(QCPRange)));
     connect(customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->yAxis2, SLOT(setRange(QCPRange)));
 
-    //connect(&dataTimer, SIGNAL(timeout()), this, SLOT(realtimeMyDataSlot()));
-    //dataTimer.start(1000); // Interval 0 means to refresh as fast as possible
+    // print debug
+    qDebug() << qFloor((volTime.first()-startTime)/timeBinSize+0.5);
 
-    //QCPMarginGroup *group = new QCPMarginGroup(customPlot);
-    //customPlot->axisRect()->setMarginGroup(QCP::msLeft|QCP::msRight, group);
-    //volumeAxisRect->setMarginGroup(QCP::msLeft|QCP::msRight, group);
 
 }
 
