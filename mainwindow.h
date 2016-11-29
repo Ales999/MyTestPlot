@@ -19,7 +19,7 @@ public:
     ~MainWindow();
     double my_rand(int accuracy);
     double my_rand();
-    void GenatareRandom(QVector<double> &volTime, QVector<double> &volData, double startTime, int genMinuts = 1);
+    void InitRandomData(QVector<double> &volTime, QVector<double> &volData, double startTime, int genMinuts = 1);
     // ---
     void setupPlot();
     ///
@@ -39,8 +39,7 @@ private:
     Ui::MainWindow *ui;
     QString demoName;
     QTimer dataTimer;
-    //int n = 500;
-    //QVector<double> volTime, volData; // (500);
+    QVector<double> volTime, volData;
     ///
     /// \brief lastPush - Последнее значение добавленное
     ///

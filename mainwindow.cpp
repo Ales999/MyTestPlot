@@ -11,7 +11,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QTime midnight(0,0,0);
     qsrand( midnight.secsTo(QTime::currentTime()) );
     setGeometry(400, 250, 1042, 390);
-    //value2 = new QVector<double>(500);
+    //
     setupPlot();
 }
 
@@ -38,14 +38,10 @@ double MainWindow::my_rand()
 
 void MainWindow::setupPlot()
 {
-    //setupFinPlot(ui->customPlot);
-    //setupRealTimePlot(ui->customPlot);
     setupRealMyTimePlot( ui->customPlot );
-
     setWindowTitle("QCustomPlot: "+demoName);
     statusBar()->clearMessage();
     ui->customPlot->replot();
-
 }
 
 void MainWindow::realtimeDataSlot()
@@ -144,12 +140,12 @@ void MainWindow::realtimeMyDataSlot()
     {
         ui->statusBar->showMessage(QString("valu2 is empty"));
     }
-
-    ui->customPlot->rescaleAxes();
 */
+    ui->customPlot->rescaleAxes();
+
 }
 
-void MainWindow::GenatareRandom(QVector<double> &volTime, QVector<double> &volData, double startTime, int genMinuts)
+void MainWindow::InitRandomData(QVector<double> &volTime, QVector<double> &volData, double startTime, int genMinuts)
 {
     for (int n=0; n < genMinuts; n++  )
     {
@@ -172,21 +168,21 @@ void MainWindow::GenatareRandom(QVector<double> &volTime, QVector<double> &volDa
 void MainWindow::setupRealMyTimePlot(QCustomPlot *customPlot)
 {
     demoName = "Моя проба";
-
-    QVector<double> volData, volTime;
     int genTimeMinutes = 120; // 120 минут !
 
-    QDateTime tstart = QDateTime::QDateTime(QDate(2016, 11, 27));
-    tstart.setTimeSpec(Qt::UTC);
+    QDateTime toBackTime = QDateTime::currentDateTime().addSecs(0-(genTimeMinutes*60));
+    //qDebug() << "Back, 120 min, Time: " << toBackTime.toString("d M yyyy hh:mm:ss.z");
 
-    double startTime = tstart.toTime_t();
+    //toBackTime.setTimeSpec(Qt::UTC);
 
-    GenatareRandom(volTime, volData, startTime, genTimeMinutes);
+    double startTime = toBackTime.toTime_t();
+    // Заполним первоначальными данными на два часа (7200 элементов в каждом векторе будет)
+    InitRandomData(volTime, volData, startTime, genTimeMinutes);
 
-    //qDebug() << "Start Time: " << tstart.toString("d M yyyy hh:mm:ss.") << "Stop Time: " << QDateTime::fromTime_t( volTime.last() ).toString("d M yyyy hh:mm:ss.");
+    //qDebug() << "Start Time: " << toBackTime.toString("d M yyyy hh:mm:ss.") << "Stop Time: " << QDateTime::fromTime_t( volTime.last() ).toString("d M yyyy hh:mm:ss.");
 
     double binSize = 600; // 600 --> 10 Min, 3600*24; --> bin data in 1 day intervals
-    double timeBinSize = binSize/5; ///3.0; В каждой 10-ти минутке по 5 баров
+    double timeBinSize = binSize/10; /// 5- > В каждой 10-ти минутке по 5 баров
 
     // ohlc for stable version
     QCPFinancial *ohlc = new QCPFinancial(customPlot->xAxis, customPlot->yAxis);
@@ -210,21 +206,12 @@ void MainWindow::setupRealMyTimePlot(QCustomPlot *customPlot)
     //customPlot->xAxis->  volumePos->setWidth(3600*4);
 
     customPlot->xAxis->setAutoTickStep(false);
-    //customPlot->xAxis->setTickStep(3600*24*4); // 4 day tickstep
+    //Через сколько рисовать тикет со временем на шкале X
     customPlot->xAxis->setTickStep(600); // 600 -> 10 минут
-    //customPlot->xAxis->setTickStep(10); // Интервал между тикетами по X -> 10 секунд
-
     customPlot->rescaleAxes();
-
     customPlot->xAxis->setRange(startTime, volTime.last());
-
     customPlot->xAxis->scaleRange(1.025, customPlot->xAxis->range().center());
     customPlot->yAxis->scaleRange(1.1, customPlot->yAxis->range().center());
-
-
-    // make left and bottom axes transfer their ranges to right and top axes:
-    //connect(customPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->xAxis2, SLOT(setRange(QCPRange)));
-    //connect(customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->yAxis2, SLOT(setRange(QCPRange)));
 
     // make axis rects' left side line up:
     QCPMarginGroup *group = new QCPMarginGroup(customPlot);
@@ -232,6 +219,8 @@ void MainWindow::setupRealMyTimePlot(QCustomPlot *customPlot)
 
     // print debug
     //qDebug() << qFloor((volTime.first()-startTime)/timeBinSize+0.5);
+    connect(&dataTimer, SIGNAL(timeout()), this, SLOT(realtimeMyDataSlot()));
+    dataTimer.start(1000); // Interval 0 means to refresh as fast as possible
 
 
 }
