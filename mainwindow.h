@@ -19,7 +19,7 @@ public:
     ~MainWindow();
     double my_rand(int accuracy);
     double my_rand();
-    void InitRandomData(QVector<double> &volTime, QVector<double> &volData, double startTime, int genMinuts = 1);
+    void InitRandomData(QVector<double> &volTime, QVector<double> &volData, double startTime, uint genMinuts = 1);
     // ---
     void setupPlot();
     ///
@@ -39,7 +39,14 @@ private:
     Ui::MainWindow *ui;
     QString demoName;
     QTimer dataTimer;
+    QCPFinancial *ohlc;
     QVector<double> volTime, volData;
+    double startTime;
+    ///
+    /// \brief graphStartTime
+    /// Начало графика на экране
+    double graphStartTime;
+    double timeBinSize;
     ///
     /// \brief lastPush - Последнее значение добавленное
     ///
