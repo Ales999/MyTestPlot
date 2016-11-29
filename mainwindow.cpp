@@ -10,7 +10,7 @@ MainWindow::MainWindow(QWidget *parent) :
     lastPush = 20;
     QTime midnight(0,0,0);
     qsrand( midnight.secsTo(QTime::currentTime()) );
-    setGeometry(400, 250, 542, 390);
+    setGeometry(400, 250, 1042, 390);
     //value2 = new QVector<double>(500);
     setupPlot();
 }
@@ -18,6 +18,22 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+///
+/// \brief MainWindow::my_rand
+/// \param accuracy - количество десятичных знаков
+///
+double MainWindow::my_rand(int accuracy)
+{
+    double ret = 0;
+    ret = ( qrand() % int (qPow(10, accuracy) +1) ) / qPow(10, accuracy);
+    return ret;
+}
+
+double MainWindow::my_rand()
+{
+    return (double)( qrand()/(double)RAND_MAX-0.5 )*3;
 }
 
 void MainWindow::setupPlot()
@@ -73,7 +89,7 @@ void MainWindow::realtimeDataSlot()
 
 void MainWindow::realtimeMyDataSlot()
 {
-
+/*
     static QTime sqtime(QTime::currentTime());
     // calculate two new data points:
     double key = sqtime.elapsed()/1000.0; // time elapsed since start of demo, in seconds
@@ -130,7 +146,27 @@ void MainWindow::realtimeMyDataSlot()
     }
 
     ui->customPlot->rescaleAxes();
+*/
+}
 
+void MainWindow::GenatareRandom(QVector<double> &volTime, QVector<double> &volData, double startTime, int genMinuts)
+{
+    for (int n=0; n < genMinuts; n++  )
+    {
+        for(int msec = 0; msec < 59; msec++ )
+        {
+            // add time to volTime
+            volTime.push_back( startTime );
+            // add random data to volData
+            lastPush += my_rand();
+            volData.push_back( lastPush );
+            startTime += 1; // Add One second
+        }
+        // Add last data
+        volTime.push_back( startTime-1 );
+        volData.push_back( lastPush );
+
+    }
 }
 
 void MainWindow::setupRealMyTimePlot(QCustomPlot *customPlot)
@@ -138,63 +174,19 @@ void MainWindow::setupRealMyTimePlot(QCustomPlot *customPlot)
     demoName = "Моя проба";
 
     QVector<double> volData, volTime;
-    const double timeShift = 60;
+    int genTimeMinutes = 120; // 120 минут !
 
-    //QDateTime tstart = QDateTime::currentDateTime(); //  QDateTime(QDate(2016, 11, 27));
     QDateTime tstart = QDateTime::QDateTime(QDate(2016, 11, 27));
     tstart.setTimeSpec(Qt::UTC);
-    //double startTime = tstart.toLocalTime().toTime_t();
+
     double startTime = tstart.toTime_t();
 
-    //volTime.setSharable(true);
-    //volData.setSharable(true);
+    GenatareRandom(volTime, volData, startTime, genTimeMinutes);
 
-    // Первый заброс данных во время и данные
-    volTime.push_front(startTime);
-    volData.push_front(lastPush);
+    //qDebug() << "Start Time: " << tstart.toString("d M yyyy hh:mm:ss.") << "Stop Time: " << QDateTime::fromTime_t( volTime.last() ).toString("d M yyyy hh:mm:ss.");
 
-    // test add
-    for (int i=1; i<20; i++) {
-        lastPush += (qrand()/(double)RAND_MAX-0.5)*3;
-        volData.push_front( lastPush );
-        volTime.push_front(startTime+timeShift*1+i*2);
-    }
-
-    volData.push_front( lastPush );
-    volTime.push_front(startTime+timeShift*2);
-    for (int i=1; i<20; i++) {
-        lastPush += (qrand()/(double)RAND_MAX-0.5)*3;
-        volData.push_front( lastPush );
-        volTime.push_front(startTime+timeShift*2+i*2);
-    }
-
-    volData.push_front( lastPush );
-    volTime.push_front(startTime+timeShift*3);
-    for (int i=1; i<20; i++) {
-        lastPush += (qrand()/(double)RAND_MAX-0.5)*3;
-        volData.push_front( lastPush );
-        volTime.push_front(startTime+timeShift*3+i*2);
-    }
-
-    volData.push_front( lastPush );
-    volTime.push_front(startTime+timeShift*4);
-    for (int i=1; i<20; i++) {
-        lastPush += (qrand()/(double)RAND_MAX-0.5)*3;
-        volData.push_front( lastPush );
-        volTime.push_front(startTime+timeShift*4+i*2);
-    }
-
-    volData.push_front( lastPush );
-    volTime.push_front(startTime+timeShift*5);
-    for (int i=1; i<20; i++) {
-        lastPush += (qrand()/(double)RAND_MAX-0.5)*3;
-        volData.push_front( lastPush );
-        volTime.push_front(startTime+timeShift*5+i*2);
-    }
-
-
-    double binSize = 60; //  3600*24; // bin data in 1 day intervals
-    double timeBinSize = binSize/5.0;
+    double binSize = 600; // 600 --> 10 Min, 3600*24; --> bin data in 1 day intervals
+    double timeBinSize = binSize/5; ///3.0; В каждой 10-ти минутке по 5 баров
 
     // ohlc for stable version
     QCPFinancial *ohlc = new QCPFinancial(customPlot->xAxis, customPlot->yAxis);
@@ -206,24 +198,40 @@ void MainWindow::setupRealMyTimePlot(QCustomPlot *customPlot)
     ohlc->setWidth(binSize*0.08);
     ohlc->setTwoColored(true);
 
+    // bring bottom and main axis rect closer together:
+    customPlot->plotLayout()->setRowSpacing(0);
+
+
+    customPlot->xAxis->setTickLabelType(QCPAxis::ltDateTime);
+    //customPlot->xAxis->setDateTimeFormat("hh:mm:ss\nzzz");
+    customPlot->xAxis->setDateTimeFormat("hh:mm:ss");
+    customPlot->xAxis->setTickLabelRotation(15);
+    //customPlot->xAxis->setAutoTickCount(3); // If setAutoTickStep == true !;
+    //customPlot->xAxis->  volumePos->setWidth(3600*4);
 
     customPlot->xAxis->setAutoTickStep(false);
     //customPlot->xAxis->setTickStep(3600*24*4); // 4 day tickstep
-    customPlot->xAxis->setTickStep(120); // 4 day tickstep
-    //volumeAxisRect->axis(QCPAxis::atBottom)->setTickLabelType(QCPAxis::ltDateTime);
-    customPlot->xAxis->setTickLabelType(QCPAxis::ltDateTime);
-    customPlot->xAxis->setDateTimeFormat("dd:hh:mm\nss:zzz");
+    customPlot->xAxis->setTickStep(600); // 600 -> 10 минут
+    //customPlot->xAxis->setTickStep(10); // Интервал между тикетами по X -> 10 секунд
+
     customPlot->rescaleAxes();
+
+    customPlot->xAxis->setRange(startTime, volTime.last());
+
     customPlot->xAxis->scaleRange(1.025, customPlot->xAxis->range().center());
     customPlot->yAxis->scaleRange(1.1, customPlot->yAxis->range().center());
 
 
     // make left and bottom axes transfer their ranges to right and top axes:
-    connect(customPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->xAxis2, SLOT(setRange(QCPRange)));
-    connect(customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->yAxis2, SLOT(setRange(QCPRange)));
+    //connect(customPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->xAxis2, SLOT(setRange(QCPRange)));
+    //connect(customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->yAxis2, SLOT(setRange(QCPRange)));
+
+    // make axis rects' left side line up:
+    QCPMarginGroup *group = new QCPMarginGroup(customPlot);
+    customPlot->axisRect()->setMarginGroup(QCP::msLeft|QCP::msRight, group);
 
     // print debug
-    qDebug() << qFloor((volTime.first()-startTime)/timeBinSize+0.5);
+    //qDebug() << qFloor((volTime.first()-startTime)/timeBinSize+0.5);
 
 
 }

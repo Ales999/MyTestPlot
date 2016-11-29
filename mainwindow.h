@@ -17,6 +17,10 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+    double my_rand(int accuracy);
+    double my_rand();
+    void GenatareRandom(QVector<double> &volTime, QVector<double> &volData, double startTime, int genMinuts = 1);
+    // ---
     void setupPlot();
     ///
     /// \brief setupFinPlot - установки плоттера
@@ -36,7 +40,7 @@ private:
     QString demoName;
     QTimer dataTimer;
     //int n = 500;
-    QVector<double> volTime, volData; // (500);
+    //QVector<double> volTime, volData; // (500);
     ///
     /// \brief lastPush - Последнее значение добавленное
     ///
