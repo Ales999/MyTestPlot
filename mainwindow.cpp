@@ -87,6 +87,7 @@ void MainWindow::realtimeMyDataSlot()
 {
 
     static QTime sqtime(QTime::currentTime());
+    //static bool firstRunTimed = true;
     QVector<double> loTime, loData;
     // calculate two new data points:
     double key = sqtime.elapsed()/1000.0; // time elapsed since start of demo, in seconds
@@ -97,7 +98,7 @@ void MainWindow::realtimeMyDataSlot()
 
     //static double lastPointKey = 0;
     //double currentTime = curtime.toTime_t();;
-    QDateTime currentTime = QDateTime::currentDateTime();
+    //QDateTime currentTime = QDateTime::currentDateTime();
     //double currentData = my_rand();
 
     //qDebug() << ui->customPlot->plottable()->name() ;
@@ -108,6 +109,13 @@ void MainWindow::realtimeMyDataSlot()
          //qDebug() << "Start: " << volData.count();
 
         // InitRandomData(loTime, loData, QDateTime::currentDateTime().toTime_t(), 1);
+        /*
+        if (firstRunTimed) {
+            firstRunTimed=false;
+            this->startTime += 60;
+        }
+        */
+        qDebug() << "Start Update Time: " << QDateTime::fromTime_t(this->startTime).toString("hh:mm:ss.");
         InitRandomData(loTime, loData, this->startTime, 1);
 
        //lstRange = loTime.last();
@@ -123,7 +131,7 @@ void MainWindow::realtimeMyDataSlot()
             volData.removeFirst();
             volTime.removeFirst();
             this->graphStartTime += 1;
-            this->startTime += 1;
+            //this->startTime += 1;
         }
 
         QCPFinancialDataMap dataNew = QCPFinancial::timeSeriesToOhlc(loTime, loData, this->timeBinSize, this->startTime);
@@ -140,14 +148,14 @@ void MainWindow::realtimeMyDataSlot()
     //}
     // make key axis range scroll with the data (at a constant range size of 8):
     //ui->customPlot->xAxis->setRange(key, 8, Qt::AlignRight);
-        ui->customPlot->xAxis->setRange(volTime.last()+60, volTime.count() ,Qt::AlignRight);
+        ui->customPlot->xAxis->setRange(volTime.last(), volTime.count() ,Qt::AlignRight);
 
         //startTime +=1;
 
     //QCPFinancialDataMap data2 = QCPFinancial::timeSeriesToOhlc(volTime, volData, timeBinSize, startTime);
     //ui->customPlot->xAxis->setRange(graphStartTime, currentTime.toTime_t()+60);
-    qDebug() << "Current Start Time: " << QDateTime::fromTime_t(this->startTime).toString("d M yyyy hh:mm:ss.");
-    qDebug() << "Time Count: " << volTime.count() << "Data Count: "  << volData.count();
+    qDebug() << "Update Time: " << QDateTime::fromTime_t(this->startTime).toString("hh:mm:ss.");
+    //qDebug() << "Time Count: " << volTime.count() << "Data Count: "  << volData.count();
 
     ui->customPlot->replot();
 
@@ -205,30 +213,28 @@ void MainWindow::realtimeMyDataSlot()
 
 void MainWindow::InitRandomData(QVector<double> &ivolTime, QVector<double> &ivolData, double lostartTime, uint genMinuts)
 {
-    bool myFirst = true;
-    for (uint n=1; n < genMinuts+1; n++  )
+    bool myFirstMin = true;
+    for (uint n=1; n <= genMinuts; n++  )
     {
         for(int msec = 1; msec < 61; msec++ )
         {
 
-            if ( !volTime.isEmpty() && !volData.isEmpty() && myFirst ) {
+            if ( !volTime.isEmpty() && !volData.isEmpty() && myFirstMin )
+            {
                 ivolTime.push_back( lostartTime );
                 ivolData.push_back( lastPush );
-                myFirst = false;
+                myFirstMin = false;
             } else
             {
-
-                // add time to volTime
-                ivolTime.push_back( lostartTime );
-                // add random data to volData
-                lastPush += my_rand();
+                ivolTime.push_back( lostartTime ); // add time to volTime
+                lastPush += my_rand(); // add random data to volData
                 ivolData.push_back( lastPush );
             }
 
             lostartTime += 1; // Add One second
             this->startTime = lostartTime;
         }
-        myFirst = true;
+        myFirstMin = true;
 
     }
 }
@@ -251,7 +257,7 @@ void MainWindow::setupRealMyTimePlot(QCustomPlot *customPlot)
     this->graphStartTime = toBackTime.toTime_t();
 
     // Заполним первоначальными данными на два часа (7200 элементов в каждом векторе будет)
-    InitRandomData(volTime, volData, graphStartTime, genTimeMinutes);
+    InitRandomData(volTime, volData, graphStartTime-60, genTimeMinutes);
 
     qDebug() << "Time Count: " << volTime.count() << "Data Count: "  << volData.count();
 
@@ -266,7 +272,7 @@ void MainWindow::setupRealMyTimePlot(QCustomPlot *customPlot)
     // ohlc for stable version
     ohlc = new QCPFinancial(customPlot->xAxis, customPlot->yAxis);
     customPlot->addPlottable(ohlc);
-    QCPFinancialDataMap data2 = QCPFinancial::timeSeriesToOhlc(volTime, volData, timeBinSize, startTime); // divide binSize by 3 just to make the ohlc bars a bit denser
+    QCPFinancialDataMap data2 = QCPFinancial::timeSeriesToOhlc(volTime, volData, timeBinSize, startTime-60); // divide binSize by 3 just to make the ohlc bars a bit denser
     ohlc->setName("OHLC");
     ohlc->setChartStyle(QCPFinancial::csOhlc);
     ohlc->setData(&data2, true);
@@ -284,13 +290,14 @@ void MainWindow::setupRealMyTimePlot(QCustomPlot *customPlot)
     //customPlot->xAxis->setAutoTickCount(3); // If setAutoTickStep == true !;
     //customPlot->xAxis->  volumePos->setWidth(3600*4);
 
-    customPlot->xAxis->setAutoTickStep(false);
+    customPlot->xAxis->setAutoTickStep(true);
+    customPlot->xAxis->setAutoTickCount(10);
     //Через сколько отображать _тикет_ со временем на шкале X
-    customPlot->xAxis->setTickStep(600); // 600 -> 10 минут
+    //customPlot->xAxis->setTickStep(600); // 600 -> 10 минут
     customPlot->xAxis->setRange(startTime, volTime.last()+60 );
 
-    //customPlot->xAxis->scaleRange(1.025, customPlot->xAxis->range().center());
-    //customPlot->yAxis->scaleRange(1.1, customPlot->yAxis->range().center());
+    customPlot->xAxis->scaleRange(1.0, customPlot->xAxis->range().center()); // Orig: 1.025
+    customPlot->yAxis->scaleRange(1.1, customPlot->yAxis->range().center());
 
     customPlot->rescaleAxes();
     // make axis rects' left side line up:
@@ -299,7 +306,6 @@ void MainWindow::setupRealMyTimePlot(QCustomPlot *customPlot)
 
     // print debug
     //qDebug() << qFloor((volTime.first()-startTime)/timeBinSize+0.5);
-
 
     // Start generate and update graph for 1 min interval
     connect(&dataTimer, SIGNAL(timeout()), this, SLOT(realtimeMyDataSlot()));
