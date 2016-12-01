@@ -19,7 +19,8 @@ public:
     ~MainWindow();
     double my_rand(int accuracy);
     double my_rand();
-    void InitRandomData(QVector<double> &volTime, QVector<double> &volData, double startTime, uint genMinuts = 1);
+    void InitRandomData(QVector<double> &volTime, QVector<double> &volData, double startTime);
+    void InitRandomData(QVector<double> &volTime, QVector<double> &volData, double startTime, uint genMinuts);
     // ---
     void setupPlot();
     ///
@@ -33,12 +34,14 @@ public:
 
 private slots:
   void realtimeDataSlot();
+  void everySecSlot();
   void realtimeMyDataSlot();
 
 private:
     Ui::MainWindow *ui;
     QString demoName;
     QTimer dataTimer;
+    QTimer timeAlign;
     QCPFinancial *ohlc;
     QVector<double> volTime, volData;
     double startTime;
