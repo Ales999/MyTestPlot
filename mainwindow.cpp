@@ -51,7 +51,8 @@ void MainWindow::everySecSlot()
             QDateTime setupTime = QDateTime(QDate::currentDate(), sqtime );
             setupTime.setTimeSpec(Qt::UTC);
             QDateTime startProgBackTime = setupTime.addSecs( 0-(genTimeMinutes*60) );
-            qDebug() << "First" << setupTime.toString("hh:mm:ss");
+            qDebug() << "First Time:            " << setupTime.toString("hh:mm:ss") << "Reverse Time " << genTimeMinutes << "Min:" << startProgBackTime.toString("hh:mm:ss");
+
             this->startTime         = setupTime.toTime_t();
             this->graphStartTime    = startProgBackTime.toTime_t();
 
@@ -59,6 +60,10 @@ void MainWindow::everySecSlot()
             InitRandomData(volTime, volData, graphStartTime, genTimeMinutes );
 
             QCPFinancialDataMap data2 = QCPFinancial::timeSeriesToOhlc(volTime, volData, timeBinSize, 60);
+            // Debug output
+            QMap<double,QCPFinancialData>::iterator it = data2.begin();
+            for(;it != data2.end(); ++it)
+                qDebug() << "Gen keys:              " << QDateTime::fromTime_t( it.key()  ).toUTC().toString("hh:mm:ss");
 
             ohlc->setData(&data2, true);
             ui->customPlot->rescaleAxes();
@@ -73,22 +78,22 @@ void MainWindow::realtimeMyDataSlot()
 {
 
     QVector<double> loTime, loData;
-    qDebug() << "Current PC Time    " << QTime::currentTime().toString("hh:mm:ss");
+    qDebug() << "Current PC Time        " << QTime::currentTime().toString("hh:mm:ss");
 
     this->startTime += 60;
-    qDebug() << "this->startTime:   " << QDateTime::fromTime_t(this->startTime).toString("hh:mm:ss.");
+    qDebug() << "this->startTime:       " << QDateTime::fromTime_t(this->startTime).toUTC().toString("hh:mm:ss");
 
     InitRandomData(loTime, loData, this->startTime );
 
-    qDebug() << "loTime Count:      " << loTime.count();
-    qDebug() << "New Time First:    " << QDateTime::fromTime_t( loTime.first() ).toString("hh:mm:ss.");
-    qDebug() << "New Timee Last:    " << QDateTime::fromTime_t( loTime.last()  ).toString("hh:mm:ss.");
+    qDebug() << "New Time Count:        " << loTime.count();
+    qDebug() << "New Time First:        " << QDateTime::fromTime_t( loTime.first() ).toUTC().toString("hh:mm:ss");
+    qDebug() << "New Timee Last:        " << QDateTime::fromTime_t( loTime.last()  ).toUTC().toString("hh:mm:ss");
 
     QCPFinancialDataMap dataNew = QCPFinancial::timeSeriesToOhlc(loTime, loData, this->timeBinSize, 0);
 
     QMap<double,QCPFinancialData>::iterator it = dataNew.begin();
     for(;it != dataNew.end(); ++it)
-        qDebug() << QDateTime::fromTime_t( it.key()  ).toString("hh:mm:ss.");
+        qDebug() << "R/T keys:              " << QDateTime::fromTime_t( it.key()  ).toUTC().toString("hh:mm:ss");
 
     // Add local temp new data/time
     ohlc->addData( dataNew );
@@ -106,10 +111,10 @@ void MainWindow::realtimeMyDataSlot()
     // Set Axis size for global time/data
     ui->customPlot->xAxis->setRange( volTime.first(), volTime.last() );
 
-    qDebug() << "Update Time:       " << QDateTime::fromTime_t(this->startTime).toString("hh:mm:ss.");
-    qDebug() << "Time Count:        " << volTime.count() << "Data Count: "  << volData.count();
-    qDebug() << "All Time First:    " << QDateTime::fromTime_t( volTime.first() ).toString("hh:mm:ss.");
-    qDebug() << "All Time Last:     " << QDateTime::fromTime_t( volTime.last()  ).toString("hh:mm:ss.");
+    qDebug() << "Update Time:           " << QDateTime::fromTime_t(this->startTime).toString("hh:mm:ss");
+    qDebug() << "All Time Vec Count:    " << volTime.count() << "Data Count: "  << volData.count();
+    qDebug() << "All Time Vec First:    " << QDateTime::fromTime_t( volTime.first() ).toLocalTime().toString("hh:mm:ss");
+    qDebug() << "All Time Vec Last:     " << QDateTime::fromTime_t( volTime.last()  ).toLocalTime().toString("hh:mm:ss");
 
     ui->customPlot->replot();
     ui->customPlot->rescaleAxes();
@@ -135,9 +140,10 @@ void MainWindow::InitRandomData(QVector<double> &ivolTime, QVector<double> &ivol
     uint mingen = 0;
     do
     {
-        for(int msec = 0; msec <= 60; msec++ )
+        for(int msec = 0; msec < 60; msec++ )
         {
-            if ( !volTime.isEmpty() && !volData.isEmpty() && firstMin )
+            // set _last_ data every one min
+            if ( firstMin )
             {
                 ivolTime.push_back( lostartTime );
                 ivolData.push_back( lastPush );
@@ -152,7 +158,7 @@ void MainWindow::InitRandomData(QVector<double> &ivolTime, QVector<double> &ivol
         }
         firstMin = true;
         mingen++;
-        lostartTime += 1;
+        //lostartTime += 1;
 
     } while(mingen < minuteGen);
 }
@@ -179,13 +185,18 @@ void MainWindow::setupRealMyTimePlot(QCustomPlot *customPlot)
     customPlot->plotLayout()->setRowSpacing(0);
     customPlot->xAxis->setTickLabelType(QCPAxis::ltDateTime);
     customPlot->xAxis->setDateTimeFormat("hh:mm:ss");
+    customPlot->xAxis->setDateTimeSpec(Qt::UTC);
+
     customPlot->xAxis->setTickLabelRotation(15);
     customPlot->xAxis->setAutoTickStep(false);
     customPlot->xAxis->setAutoTickCount(10);
+    customPlot->xAxis->setAutoSubTicks(5);
     //Через сколько отображать _тикет_ со временем на шкале X
     customPlot->xAxis->setTickStep(60); // 600 -> 10 минут
+    customPlot->xAxis->setSubTickCount(6);
 
-    customPlot->xAxis->scaleRange(1.0, customPlot->xAxis->range().center()); // Orig: 1.025
+
+    customPlot->xAxis->scaleRange(1.025, customPlot->xAxis->range().center()); // Orig: 1.025
     customPlot->yAxis->scaleRange(1.1, customPlot->yAxis->range().center());
 
     qDebug() << "--------------------------------------------------";
