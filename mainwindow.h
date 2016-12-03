@@ -17,42 +17,32 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-    double my_rand(int accuracy);
     double my_rand();
-    void InitRandomData(QVector<double> &volTime, QVector<double> &volData, double startTime, uint genMinuts = 1);
-    // ---
+    double my_rand(int accuracy);
+    // Generate random time/data values
+    void InitRandomData(QVector<double> &volTime, QVector<double> &volData, double startTime);
+    void InitRandomData(QVector<double> &volTime, QVector<double> &volData, double startTime, uint minuteGen);
+    // Setting and start QTimer's
     void setupPlot();
-    ///
-    /// \brief setupFinPlot - установки плоттера
-    /// \param customPlot
-    /// \details Утсановим данные для Фин-Графика
-    ///
-    void setupFinPlot(QCustomPlot *customPlot);
-    void setupRealTimePlot(QCustomPlot *customPlot);
     void setupRealMyTimePlot(QCustomPlot *customPlot);
 
 private slots:
-  void realtimeDataSlot();
+  void everySecSlot();
   void realtimeMyDataSlot();
 
 private:
     Ui::MainWindow *ui;
     QString demoName;
     QTimer dataTimer;
+    QTimer timeAlign;
     QCPFinancial *ohlc;
     QVector<double> volTime, volData;
     double startTime;
-    ///
-    /// \brief graphStartTime
-    /// Начало графика на экране
     double graphStartTime;
     double timeBinSize;
-    ///
-    /// \brief lastPush - Последнее значение добавленное
-    ///
     double lastPush;
-    // А надо-ли нам его ?
-    //QCPItemTracer *itemPlotPhaseTracer;
+    // My Dev version
+    QCPFinancialDataMap timeSeriesToOhlcOne(const QVector<double> &time, const QVector<double> &value, double timeBinSize, double timeBinOffset);
 };
 
 #endif // MAINWINDOW_H

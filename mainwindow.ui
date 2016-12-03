@@ -15,6 +15,17 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout_2">
+    <item row="1" column="0">
+     <layout class="QGridLayout" name="gridLayout_3">
+      <item row="0" column="0">
+       <widget class="QLabel" name="waitingLabel">
+        <property name="text">
+         <string>Waitin time align, maximum - one minute</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
     <item row="0" column="0">
      <layout class="QGridLayout" name="gridLayout">
       <item row="0" column="0">

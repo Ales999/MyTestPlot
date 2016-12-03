@@ -20,17 +20,6 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-///
-/// \brief MainWindow::my_rand
-/// \param accuracy - количество десятичных знаков
-///
-double MainWindow::my_rand(int accuracy)
-{
-    double ret = 0;
-    ret = ( qrand() % int (qPow(10, accuracy) +1) ) / qPow(10, accuracy);
-    return ret;
-}
-
 double MainWindow::my_rand()
 {
     return (double)( qrand()/(double)RAND_MAX-0.5 )*3;
@@ -38,276 +27,236 @@ double MainWindow::my_rand()
 
 void MainWindow::setupPlot()
 {
+    ui->customPlot->setVisible(false);
     setupRealMyTimePlot( ui->customPlot );
     setWindowTitle("QCustomPlot: "+demoName);
     statusBar()->clearMessage();
     ui->customPlot->replot();
 }
 
-void MainWindow::realtimeDataSlot()
-{
-    static QTime time(QTime::currentTime());
-    // calculate two new data points:
-    double key = time.elapsed()/1000.0; // time elapsed since start of demo, in seconds
-    static double lastPointKey = 0;
-    if (key-lastPointKey > 0.002) // at most add point every 2 ms
-    {
-      // add data to lines:
-      ui->customPlot->graph(0)->addData(key, qSin(key)+qrand()/(double)RAND_MAX*1*qSin(key/0.3843));
-      ui->customPlot->graph(1)->addData(key, qCos(key)+qrand()/(double)RAND_MAX*0.5*qSin(key/0.4364));
-      // rescale value (vertical) axis to fit the current data:
-      //ui->customPlot->graph(0)->rescaleValueAxis();
-      //ui->customPlot->graph(1)->rescaleValueAxis(true);
-      lastPointKey = key;
-    }
-    // make key axis range scroll with the data (at a constant range size of 8):
-    ui->customPlot->xAxis->setRange(key, 8, Qt::AlignRight);
-    ui->customPlot->replot();
 
-    /*
-    // calculate frames per second:
-    static double lastFpsKey;
-    static int frameCount;
-    ++frameCount;
-    if (key-lastFpsKey > 2) // average fps over 2 seconds
+void MainWindow::everySecSlot()
+{
+    static bool First = true;
+    int genTimeMinutes = 3;
+    // 1/2 minute shift
+    int secShift = 30;
+    QTime sqtime(QTime::currentTime());
+
+    if( sqtime.second() == secShift )
     {
-      ui->statusBar->showMessage(
-            QString("%1 FPS, Total Data points: %2")
-            .arg(frameCount/(key-lastFpsKey), 0, 'f', 0)
-            .arg(ui->customPlot->graph(0)->data()->size()+ui->customPlot->graph(1)->data()->size())
-            , 0);
-      lastFpsKey = key;
-      frameCount = 0;
+        if (First )
+        {
+            First = false;
+            ui->customPlot->setVisible(true);
+            ui->waitingLabel->setVisible(false);
+            QDateTime setupTime = QDateTime(QDate::currentDate(), sqtime );
+            setupTime.setTimeSpec(Qt::UTC);
+            QDateTime startProgBackTime = setupTime.addSecs( 0-(genTimeMinutes*60) );
+            qDebug() << "First Time:            " << setupTime.toString("hh:mm:ss") << "Reverse Time " << genTimeMinutes << "Min:" << startProgBackTime.toString("hh:mm:ss");
+
+            this->startTime         = (setupTime.toTime_t()) - secShift*2;
+            this->graphStartTime    = startProgBackTime.toTime_t();
+
+
+            InitRandomData(volTime, volData, graphStartTime, genTimeMinutes );
+
+            QCPFinancialDataMap data2 = QCPFinancial::timeSeriesToOhlc(volTime, volData, timeBinSize, 0);
+            // Debug output
+            QMap<double,QCPFinancialData>::iterator it = data2.begin();
+            for(;it != data2.end(); ++it)
+                qDebug() << "Gen keys:              " << QDateTime::fromTime_t( it.key()  ).toUTC().toString("hh:mm:ss");
+
+            ohlc->setData(&data2, true);
+            ui->customPlot->rescaleAxes();
+            ui->customPlot->replot();
+        } else
+            QTimer::singleShot(0, this, SLOT(realtimeMyDataSlot()));
     }
-*/
+    // Update graphics
+    if (sqtime.second() == 0)
+        ui->customPlot->replot();
 
 }
 
 void MainWindow::realtimeMyDataSlot()
 {
 
-    static QTime sqtime(QTime::currentTime());
     QVector<double> loTime, loData;
-    // calculate two new data points:
-    double key = sqtime.elapsed()/1000.0; // time elapsed since start of demo, in seconds
-    //double lstRange=0.0;
-    static double lastPointKey = 0;
-    // int j = ui->customPlot->plottableCount();
-    // qDebug() << j;
+    qDebug() << "Current PC Time        " << QTime::currentTime().toString("hh:mm:ss");
 
-    //static double lastPointKey = 0;
-    //double currentTime = curtime.toTime_t();;
-    QDateTime currentTime = QDateTime::currentDateTime();
-    //double currentData = my_rand();
+    this->startTime += 60;
+    qDebug() << "this->startTime:       " << QDateTime::fromTime_t(this->startTime).toUTC().toString("hh:mm:ss");
 
-    //qDebug() << ui->customPlot->plottable()->name() ;
-    //QCPFinancial *ohlc = ui->customPlot->plottable()->children();
+    InitRandomData(loTime, loData, this->startTime );
 
-    //if (key-lastPointKey > 0.02)
-    //{
-         //qDebug() << "Start: " << volData.count();
+    qDebug() << "R/T Time Count:        " << loTime.count();
+    qDebug() << "R/T Time First:        " << QDateTime::fromTime_t( loTime.first() ).toUTC().toString("hh:mm:ss");
+    qDebug() << "R/T Time Last:         " << QDateTime::fromTime_t( loTime.last()  ).toUTC().toString("hh:mm:ss");
 
-        // InitRandomData(loTime, loData, QDateTime::currentDateTime().toTime_t(), 1);
-        InitRandomData(loTime, loData, this->startTime, 1);
+    QCPFinancialDataMap dataNew = QCPFinancial::timeSeriesToOhlc(loTime, loData, this->timeBinSize, 0);
 
-       //lstRange = loTime.last();
+    QMap<double,QCPFinancialData>::iterator it = dataNew.begin();
+    int numint =0;
+    for(;it != dataNew.end(); ++it) {
+        qDebug( "OHLC[%d] keys:           \"%s\"", numint, qPrintable( QDateTime::fromTime_t( it.key()  ).toUTC().toString("hh:mm:ss") ) );
+        numint += 1;
+    }
 
-        this->volTime.append(loTime);
-        this->volData.append(loData);
+    // Add local temp new data/time
+    ohlc->addData( dataNew );
 
+    // Add local time/date to global time/data and clean old
+    this->volTime.append(loTime);
+    this->volData.append(loData);
 
+    for ( int l=0; l<60; l++)
+    {
+        volTime.removeFirst();
+        volData.removeFirst();
+        this->graphStartTime += 1;
+    }
+    // Set Axis size for global time/data
+    ui->customPlot->xAxis->setRange( volTime.first(), volTime.last() );
 
-        //qDebug() << loTime.count();
+    qDebug() << "Update Time:           " << QDateTime::fromTime_t(this->startTime).toUTC().toString("hh:mm:ss");
+    qDebug() << "All Time Vec Count:    " << volTime.count() << "Data Count: "  << volData.count();
+    qDebug() << "All Time Vec First:    " << QDateTime::fromTime_t( volTime.first() ).toUTC().toString("hh:mm:ss");
+    qDebug() << "All Time Vec Last:     " << QDateTime::fromTime_t( volTime.last()  ).toUTC().toString("hh:mm:ss");
 
-        for ( int l=0; l<60; l++) {
-            volData.removeFirst();
-            volTime.removeFirst();
-            this->graphStartTime += 1;
-            this->startTime += 1;
+    //ui->customPlot->replot();
+    ui->customPlot->rescaleAxes();
+    qDebug() << "--------------------------------------------------";
+}
+
+void MainWindow::InitRandomData(QVector<double> &ivolTime, QVector<double> &ivolData, double lostartTime)
+{
+    lostartTime += 1;
+    for(int msec = 1; msec <= 60; msec++ )
+    {
+        ivolTime.push_back( lostartTime ); // add time to ivolTime
+        if (msec == 1)
+        {   // Need for close == open next OHLC
+            ivolData.push_back( lastPush );
+        } else {
+            lastPush += my_rand(); // add random data to ivolData
+            ivolData.push_back( lastPush );
         }
 
-        QCPFinancialDataMap dataNew = QCPFinancial::timeSeriesToOhlc(loTime, loData, this->timeBinSize, this->startTime);
-        ohlc->addData( dataNew );//  ->addData(&dataNew);
-
-
-        //volTime.push_back(currentTime.toTime_t());
-        // add random data to volData
-        //lastPush += my_rand();
-        //volData.push_back( lastPush );
-        //qDebug() << "Last Data: " << lastPush;
-
-        lastPointKey = key;
-    //}
-    // make key axis range scroll with the data (at a constant range size of 8):
-    //ui->customPlot->xAxis->setRange(key, 8, Qt::AlignRight);
-        ui->customPlot->xAxis->setRange(volTime.last()+60, volTime.count() ,Qt::AlignRight);
-
-        //startTime +=1;
-
-    //QCPFinancialDataMap data2 = QCPFinancial::timeSeriesToOhlc(volTime, volData, timeBinSize, startTime);
-    //ui->customPlot->xAxis->setRange(graphStartTime, currentTime.toTime_t()+60);
-    qDebug() << "Current Start Time: " << QDateTime::fromTime_t(this->startTime).toString("d M yyyy hh:mm:ss.");
-    qDebug() << "Time Count: " << volTime.count() << "Data Count: "  << volData.count();
-
-    ui->customPlot->replot();
-
-    ui->customPlot->rescaleAxes();
-
-
-/*
-    //qsrand(9);
-    if (key-lastPointKey > 0.02) // at most add point every 20 ms
-    {
-        //  Удалить последний
-        if( !this->volData.isEmpty() )
-        {
-            currentData = this->volData.last();
-            if (volData.size() > 500)
-                {
-                   this->volTime.removeFirst();
-                   this->volData.removeFirst();
-                }
-        }
-
-        // Добавить данные в конец вектора
-        this->volTime.push_front(currentTime.toTime_t());
-
-        lastPush += (qrand()/(double)RAND_MAX-0.5)*3;
-        this->volData.push_back( lastPush );
-
-      lastPointKey = key;
+        lostartTime += 1; // Add One second
     }
-
-
-    // make key axis range scroll with the data (at a constant range size of 8):
-    ui->customPlot->xAxis->setRange(key, 8, Qt::AlignRight);
-    ui->customPlot->replot();
-
-
-    if(!this->volData.isEmpty())
-    {
-        //
-        ui->statusBar->showMessage(
-          QString("Value2: %1")
-                .arg(this->volData.last())
-                ,0);
-
-    }
-    else
-    {
-        ui->statusBar->showMessage(QString("valu2 is empty"));
-    }
-
-    ui->customPlot->rescaleAxes();
-*/
 
 }
 
-void MainWindow::InitRandomData(QVector<double> &ivolTime, QVector<double> &ivolData, double lostartTime, uint genMinuts)
+void MainWindow::InitRandomData(QVector<double> &ivolTime, QVector<double> &ivolData, double lostartTime, uint minuteGen)
 {
-    bool myFirst = true;
-    for (uint n=1; n < genMinuts+1; n++  )
+    bool firstMin = true;
+    uint mingen = 0;
+    do
     {
-        for(int msec = 1; msec < 61; msec++ )
+        for(int msec = 1; msec <= 60; msec++ )
         {
-
-            if ( !volTime.isEmpty() && !volData.isEmpty() && myFirst ) {
+            // set _last_ data every one min
+            if ( firstMin )
+            {
                 ivolTime.push_back( lostartTime );
                 ivolData.push_back( lastPush );
-                myFirst = false;
+                firstMin = false;
             } else
             {
-
-                // add time to volTime
-                ivolTime.push_back( lostartTime );
-                // add random data to volData
-                lastPush += my_rand();
+                ivolTime.push_back( lostartTime ); // add time to volTime
+                lastPush += my_rand(); // add random data to volData
                 ivolData.push_back( lastPush );
             }
-
             lostartTime += 1; // Add One second
-            this->startTime = lostartTime;
         }
-        myFirst = true;
+        firstMin = true;
+        mingen++;
+        //lostartTime += 1;
 
-    }
+    } while(mingen < minuteGen);
 }
+
+
 
 void MainWindow::setupRealMyTimePlot(QCustomPlot *customPlot)
 {
     demoName = "Моя проба";
-    int genTimeMinutes = 120; // 120 минут !
-    // Set startProgTime without msecs
-    QTime currTime = QTime::currentTime();
-    QDateTime startProgTime = QDateTime(QDate::currentDate(), QTime( currTime.hour(), currTime.minute(), currTime.second(), 0 ) );
-    qDebug() << startProgTime.toString("d M yyyy hh:mm:ss.zzz");
 
-    // Set revesr back time to genTimeMinutes second
-    QDateTime toBackTime = startProgTime.addSecs(0-(genTimeMinutes*60));
-    //qDebug() << "Back, 120 min, Time: " << toBackTime.toString("d M yyyy hh:mm:ss.z");
+    double binSize = 60; // 600 --> 10 Min, 3600*24; --> bin data in 1 day intervals
+    this->timeBinSize = binSize; //10 /// 5- > В каждой 10-ти минутке по 5 баров
 
-    //toBackTime.setTimeSpec(Qt::UTC);
-
-    this->graphStartTime = toBackTime.toTime_t();
-
-    // Заполним первоначальными данными на два часа (7200 элементов в каждом векторе будет)
-    InitRandomData(volTime, volData, graphStartTime, genTimeMinutes);
-
-    qDebug() << "Time Count: " << volTime.count() << "Data Count: "  << volData.count();
-
-    this->startTime = startProgTime.toTime_t();
-
-    //qDebug() << "Start Time: " << toBackTime.toString("d M yyyy hh:mm:ss.") << "Stop Time: " << QDateTime::fromTime_t( volTime.last() ).toString("d M yyyy hh:mm:ss.");
-    qDebug() << "Start Time: " << startProgTime.toString("d M yyyy hh:mm:ss.zzz");
-
-    double binSize = 600; // 600 --> 10 Min, 3600*24; --> bin data in 1 day intervals
-    this->timeBinSize = binSize/10; /// 5- > В каждой 10-ти минутке по 5 баров
+    qDebug() << "Start Program Time: " << QDateTime::currentDateTime().toString("d M yyyy hh:mm:ss");
 
     // ohlc for stable version
     ohlc = new QCPFinancial(customPlot->xAxis, customPlot->yAxis);
     customPlot->addPlottable(ohlc);
-    QCPFinancialDataMap data2 = QCPFinancial::timeSeriesToOhlc(volTime, volData, timeBinSize, startTime); // divide binSize by 3 just to make the ohlc bars a bit denser
     ohlc->setName("OHLC");
     ohlc->setChartStyle(QCPFinancial::csOhlc);
-    ohlc->setData(&data2, true);
-    ohlc->setWidth(binSize*0.08);
+    ohlc->setWidth(binSize*0.9); // 0.08);
     ohlc->setTwoColored(true);
-
     // bring bottom and main axis rect closer together:
     customPlot->plotLayout()->setRowSpacing(0);
-
-
     customPlot->xAxis->setTickLabelType(QCPAxis::ltDateTime);
-    //customPlot->xAxis->setDateTimeFormat("hh:mm:ss\nzzz");
     customPlot->xAxis->setDateTimeFormat("hh:mm:ss");
+    customPlot->xAxis->setDateTimeSpec(Qt::UTC);
+
     customPlot->xAxis->setTickLabelRotation(15);
-    //customPlot->xAxis->setAutoTickCount(3); // If setAutoTickStep == true !;
-    //customPlot->xAxis->  volumePos->setWidth(3600*4);
-
     customPlot->xAxis->setAutoTickStep(false);
+    customPlot->xAxis->setAutoTickCount(10);
+    customPlot->xAxis->setAutoSubTicks(5);
     //Через сколько отображать _тикет_ со временем на шкале X
-    customPlot->xAxis->setTickStep(600); // 600 -> 10 минут
-    customPlot->xAxis->setRange(startTime, volTime.last()+60 );
-
-    //customPlot->xAxis->scaleRange(1.025, customPlot->xAxis->range().center());
-    //customPlot->yAxis->scaleRange(1.1, customPlot->yAxis->range().center());
-
-    customPlot->rescaleAxes();
-    // make axis rects' left side line up:
-    //QCPMarginGroup *group = new QCPMarginGroup(customPlot);
-    //customPlot->axisRect()->setMarginGroup(QCP::msLeft|QCP::msRight, group);
-
-    // print debug
-    //qDebug() << qFloor((volTime.first()-startTime)/timeBinSize+0.5);
+    customPlot->xAxis->setTickStep(60); // 600 -> 10 минут
+    customPlot->xAxis->setSubTickCount(6);
 
 
+    customPlot->xAxis->scaleRange(1.025, customPlot->xAxis->range().center()); // Orig: 1.025
+    customPlot->yAxis->scaleRange(1.1, customPlot->yAxis->range().center());
+
+    qDebug() << "------------------ END Setup Plot ---------------------";
     // Start generate and update graph for 1 min interval
-    connect(&dataTimer, SIGNAL(timeout()), this, SLOT(realtimeMyDataSlot()));
-    //dataTimer.start(1000); // Interval 1000 -> 1 second
-    dataTimer.start(60000); // interval -> 1 min
-
+    connect(&timeAlign, SIGNAL(timeout()), this, SLOT(everySecSlot()));
+    timeAlign.start(1000);
 
 
 }
 
+// My Dev version
+QCPFinancialDataMap MainWindow::timeSeriesToOhlcOne(const QVector<double> &time, const QVector<double> &value, double timeBinSize, double timeBinOffset)
+{
+  QCPFinancialDataMap map;
+  int count = qMin(time.size(), value.size());
+  if (count == 0)
+    return QCPFinancialDataMap();
 
+  QCPFinancialData currentBinData(0, value.first(), value.first(), value.first(), value.first());
+  int currentBinIndex = qFloor((time.first()-timeBinOffset)/timeBinSize+0.5);
+  for (int i=0; i<count; ++i)
+  {
+    int index = qFloor((time.at(i)-timeBinOffset)/timeBinSize+0.5);
+    if (currentBinIndex == index) // data point still in current bin, extend high/low:
+    {
+      if (value.at(i) < currentBinData.low) currentBinData.low = value.at(i);
+      if (value.at(i) > currentBinData.high) currentBinData.high = value.at(i);
+      if (i == count-1) // last data point is in current bin, finalize bin:
+      {
+        currentBinData.close = value.at(i);
+        currentBinData.key = timeBinOffset+(index)*timeBinSize;
+        map.insert(currentBinData.key, currentBinData);
+      }
+    } else // data point not anymore in current bin, set close of old and open of new bin, and add old to map:
+    {
+      // finalize current bin:
+      currentBinData.close = value.at(i-1);
+      currentBinData.key = timeBinOffset+(index-1)*timeBinSize;
+      map.insert(currentBinData.key, currentBinData);
+      // start next bin:
+      currentBinIndex = index;
+      currentBinData.open = value.at(i);
+      currentBinData.high = value.at(i);
+      currentBinData.low = value.at(i);
+    }
+  }
+
+  return map;
+}
