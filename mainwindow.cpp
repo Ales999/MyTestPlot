@@ -131,7 +131,7 @@ void MainWindow::realtimeMyDataSlot()
 
 void MainWindow::InitRandomData(QVector<double> &ivolTime, QVector<double> &ivolData, double lostartTime)
 {
-    lostartTime += 1;
+    //lostartTime += 1;
     for(int msec = 1; msec <= 60; msec++ )
     {
         ivolTime.push_back( lostartTime ); // add time to ivolTime
