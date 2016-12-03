@@ -73,6 +73,7 @@ void MainWindow::everySecSlot()
         } else
             QTimer::singleShot(0, this, SLOT(realtimeMyDataSlot()));
     }
+    // Update graphics
     if (sqtime.second() == 0)
         ui->customPlot->replot();
 
@@ -130,11 +131,17 @@ void MainWindow::realtimeMyDataSlot()
 
 void MainWindow::InitRandomData(QVector<double> &ivolTime, QVector<double> &ivolData, double lostartTime)
 {
-    for(int msec = 0; msec < 60; msec++ )
+    lostartTime += 1;
+    for(int msec = 1; msec <= 60; msec++ )
     {
         ivolTime.push_back( lostartTime ); // add time to ivolTime
-        lastPush += my_rand(); // add random data to ivolData
-        ivolData.push_back( lastPush );
+        if (msec == 1)
+        {   // Need for close == open next OHLC
+            ivolData.push_back( lastPush );
+        } else {
+            lastPush += my_rand(); // add random data to ivolData
+            ivolData.push_back( lastPush );
+        }
 
         lostartTime += 1; // Add One second
     }
@@ -147,7 +154,7 @@ void MainWindow::InitRandomData(QVector<double> &ivolTime, QVector<double> &ivol
     uint mingen = 0;
     do
     {
-        for(int msec = 0; msec < 60; msec++ )
+        for(int msec = 1; msec <= 60; msec++ )
         {
             // set _last_ data every one min
             if ( firstMin )
@@ -206,7 +213,7 @@ void MainWindow::setupRealMyTimePlot(QCustomPlot *customPlot)
     customPlot->xAxis->scaleRange(1.025, customPlot->xAxis->range().center()); // Orig: 1.025
     customPlot->yAxis->scaleRange(1.1, customPlot->yAxis->range().center());
 
-    qDebug() << "--------------------------------------------------";
+    qDebug() << "------------------ END Setup Plot ---------------------";
     // Start generate and update graph for 1 min interval
     connect(&timeAlign, SIGNAL(timeout()), this, SLOT(everySecSlot()));
     timeAlign.start(1000);
