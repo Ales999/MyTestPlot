@@ -39,9 +39,11 @@ void MainWindow::everySecSlot()
 {
     static bool First = true;
     int genTimeMinutes = 3;
+    // 1/2 minute shift
+    int secShift = 30;
     QTime sqtime(QTime::currentTime());
 
-    if( sqtime.second() == 0 )
+    if( sqtime.second() == secShift )
     {
         if (First )
         {
@@ -53,13 +55,13 @@ void MainWindow::everySecSlot()
             QDateTime startProgBackTime = setupTime.addSecs( 0-(genTimeMinutes*60) );
             qDebug() << "First Time:            " << setupTime.toString("hh:mm:ss") << "Reverse Time " << genTimeMinutes << "Min:" << startProgBackTime.toString("hh:mm:ss");
 
-            this->startTime         = setupTime.toTime_t();
+            this->startTime         = (setupTime.toTime_t()) - secShift*2;
             this->graphStartTime    = startProgBackTime.toTime_t();
 
 
             InitRandomData(volTime, volData, graphStartTime, genTimeMinutes );
 
-            QCPFinancialDataMap data2 = QCPFinancial::timeSeriesToOhlc(volTime, volData, timeBinSize, 60);
+            QCPFinancialDataMap data2 = QCPFinancial::timeSeriesToOhlc(volTime, volData, timeBinSize, 0);
             // Debug output
             QMap<double,QCPFinancialData>::iterator it = data2.begin();
             for(;it != data2.end(); ++it)
@@ -71,6 +73,8 @@ void MainWindow::everySecSlot()
         } else
             QTimer::singleShot(0, this, SLOT(realtimeMyDataSlot()));
     }
+    if (sqtime.second() == 0)
+        ui->customPlot->replot();
 
 }
 
@@ -85,15 +89,18 @@ void MainWindow::realtimeMyDataSlot()
 
     InitRandomData(loTime, loData, this->startTime );
 
-    qDebug() << "New Time Count:        " << loTime.count();
-    qDebug() << "New Time First:        " << QDateTime::fromTime_t( loTime.first() ).toUTC().toString("hh:mm:ss");
-    qDebug() << "New Timee Last:        " << QDateTime::fromTime_t( loTime.last()  ).toUTC().toString("hh:mm:ss");
+    qDebug() << "R/T Time Count:        " << loTime.count();
+    qDebug() << "R/T Time First:        " << QDateTime::fromTime_t( loTime.first() ).toUTC().toString("hh:mm:ss");
+    qDebug() << "R/T Time Last:         " << QDateTime::fromTime_t( loTime.last()  ).toUTC().toString("hh:mm:ss");
 
     QCPFinancialDataMap dataNew = QCPFinancial::timeSeriesToOhlc(loTime, loData, this->timeBinSize, 0);
 
     QMap<double,QCPFinancialData>::iterator it = dataNew.begin();
-    for(;it != dataNew.end(); ++it)
-        qDebug() << "R/T keys:              " << QDateTime::fromTime_t( it.key()  ).toUTC().toString("hh:mm:ss");
+    int numint =0;
+    for(;it != dataNew.end(); ++it) {
+        qDebug( "OHLC[%d] keys:           \"%s\"", numint, qPrintable( QDateTime::fromTime_t( it.key()  ).toUTC().toString("hh:mm:ss") ) );
+        numint += 1;
+    }
 
     // Add local temp new data/time
     ohlc->addData( dataNew );
@@ -111,12 +118,12 @@ void MainWindow::realtimeMyDataSlot()
     // Set Axis size for global time/data
     ui->customPlot->xAxis->setRange( volTime.first(), volTime.last() );
 
-    qDebug() << "Update Time:           " << QDateTime::fromTime_t(this->startTime).toString("hh:mm:ss");
+    qDebug() << "Update Time:           " << QDateTime::fromTime_t(this->startTime).toUTC().toString("hh:mm:ss");
     qDebug() << "All Time Vec Count:    " << volTime.count() << "Data Count: "  << volData.count();
-    qDebug() << "All Time Vec First:    " << QDateTime::fromTime_t( volTime.first() ).toLocalTime().toString("hh:mm:ss");
-    qDebug() << "All Time Vec Last:     " << QDateTime::fromTime_t( volTime.last()  ).toLocalTime().toString("hh:mm:ss");
+    qDebug() << "All Time Vec First:    " << QDateTime::fromTime_t( volTime.first() ).toUTC().toString("hh:mm:ss");
+    qDebug() << "All Time Vec Last:     " << QDateTime::fromTime_t( volTime.last()  ).toUTC().toString("hh:mm:ss");
 
-    ui->customPlot->replot();
+    //ui->customPlot->replot();
     ui->customPlot->rescaleAxes();
     qDebug() << "--------------------------------------------------";
 }
@@ -207,4 +214,42 @@ void MainWindow::setupRealMyTimePlot(QCustomPlot *customPlot)
 
 }
 
+// My Dev version
+QCPFinancialDataMap MainWindow::timeSeriesToOhlcOne(const QVector<double> &time, const QVector<double> &value, double timeBinSize, double timeBinOffset)
+{
+  QCPFinancialDataMap map;
+  int count = qMin(time.size(), value.size());
+  if (count == 0)
+    return QCPFinancialDataMap();
 
+  QCPFinancialData currentBinData(0, value.first(), value.first(), value.first(), value.first());
+  int currentBinIndex = qFloor((time.first()-timeBinOffset)/timeBinSize+0.5);
+  for (int i=0; i<count; ++i)
+  {
+    int index = qFloor((time.at(i)-timeBinOffset)/timeBinSize+0.5);
+    if (currentBinIndex == index) // data point still in current bin, extend high/low:
+    {
+      if (value.at(i) < currentBinData.low) currentBinData.low = value.at(i);
+      if (value.at(i) > currentBinData.high) currentBinData.high = value.at(i);
+      if (i == count-1) // last data point is in current bin, finalize bin:
+      {
+        currentBinData.close = value.at(i);
+        currentBinData.key = timeBinOffset+(index)*timeBinSize;
+        map.insert(currentBinData.key, currentBinData);
+      }
+    } else // data point not anymore in current bin, set close of old and open of new bin, and add old to map:
+    {
+      // finalize current bin:
+      currentBinData.close = value.at(i-1);
+      currentBinData.key = timeBinOffset+(index-1)*timeBinSize;
+      map.insert(currentBinData.key, currentBinData);
+      // start next bin:
+      currentBinIndex = index;
+      currentBinData.open = value.at(i);
+      currentBinData.high = value.at(i);
+      currentBinData.low = value.at(i);
+    }
+  }
+
+  return map;
+}

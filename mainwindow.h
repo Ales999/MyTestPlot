@@ -41,7 +41,8 @@ private:
     double graphStartTime;
     double timeBinSize;
     double lastPush;
-
+    // My Dev version
+    QCPFinancialDataMap timeSeriesToOhlcOne(const QVector<double> &time, const QVector<double> &value, double timeBinSize, double timeBinOffset);
 };
 
 #endif // MAINWINDOW_H
