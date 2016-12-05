@@ -41,3 +41,4 @@ private:
 };
 
 #endif // GENRANDOM_H
+

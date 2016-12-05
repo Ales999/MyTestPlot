@@ -15,9 +15,7 @@ public:
 
 GenRandom::GenRandom(QObject *parent) : QObject(parent), data(new GenRandomData)
 {
-//    data->key = 0;
-//    data->volTime.clear();
-//    data->volData.clear();
+    data->key = 0;
 }
 
 GenRandom::GenRandom(const GenRandom &rhs) : data(rhs.data)
@@ -34,7 +32,7 @@ GenRandom &GenRandom::operator=(const GenRandom &rhs)
 
 GenRandom::~GenRandom()
 {
-    qDebug() << "delete Random";
+    //qDebug() << "delete Random";
 }
 // * ---- End default
 
@@ -54,7 +52,7 @@ void GenRandom::doActionSlot()
     bool res;
     emit changed( data->volTime.count() );
     res = QObject::connect (&_tmr, &QTimer::timeout, this, &GenRandom::doWorkSlot);	Q_ASSERT_X (res, "connect", "connection is not established");	// связывание внешнего таймера
-    qDebug() << "doActionSlot";
+    //qDebug() << "doActionSlot";
     _tmr.start(1*1000);     // запуск внешнего таймера
     thread()->sleep(1);     // выжидание 1 сек...
     doWorkSlot();               // ... выдача состояния ...

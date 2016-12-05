@@ -1,10 +1,23 @@
 #include "mainwindow.h"
 #include <QApplication>
 
-#include "ThreadedObject.h"
+// **  https://habrahabr.ru/post/203254/
+// ** #include "ThreadedObject.h"
+
+int main(int argc, char *argv[])
+{
+    bool res;
+    //int strtmt;
+    QApplication app(argc, argv);
+    MainWindow mainWin;
+    mainWin.show();
+    res = QObject::connect (&app, SIGNAL (lastWindowClosed ()), &mainWin, SLOT (terminate ())); Q_ASSERT_X (res, "connect", "connection is not established");
+    return app.exec();
+}
 
 
-//  https://habrahabr.ru/post/203254/
+/*
+
 // **
 // **  Выполнение операции
 // **
@@ -113,32 +126,5 @@ signals:
 };
 
 
-
-int main(int argc, char *argv[])
-{
-    bool res;
-    //int strtmt;
-    QApplication app(argc, argv);
-    MainWindow mainWin;
-    /*
-    strtmt = mainWin.startTimer(0);
-    qDebug() << "Start timer: " << strtmt;
-    mainWin._int_timer = strtmt;
-*/
-    mainWin.show();
-
-    res = QObject::connect (&app, SIGNAL (lastWindowClosed ()), &mainWin, SLOT (terminate ())); Q_ASSERT_X (res, "connect", "connection is not established");
-    // ---------------------------------------------
-    // Test THread
-    /*
-    App a;      // объект
-    bool res;   // признак успешности операции
-    a.startTimer(0);
-    res = QObject::connect (&a, SIGNAL (finish ()), &app, SLOT (quit ()));                  Q_ASSERT_X (res, "connect", "connection is not established");	// окончание работы объекта закрывает приложение
-    res = QObject::connect (&app, SIGNAL (lastWindowClosed ()), &a, SLOT (terminate ()));	Q_ASSERT_X (res, "connect", "connection is not established");	// окончание работы приложения закрывает объект
-    */
-    // ---------------------------------------------
-    return app.exec();
-}
-
 // #include "main.moc"
+*/
