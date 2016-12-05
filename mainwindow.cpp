@@ -56,6 +56,9 @@ void MainWindow::connectObjectSlot()
     res = QObject::connect (_obj, &GenRandom::finished, this, &MainWindow::finish);             Q_ASSERT_X (res, "connect", "connection is not established");	// конец операции завершает работу приложения
     res = QObject::connect (_obj, &GenRandom::changed, this, &MainWindow::newGenDataSlot);        Q_ASSERT_X (res, "connect", "connection is not established");	// установка надписи на кнопку
     //res = QObject::connect (&_btn, &QPushButton::clicked, _obj, &Operation::terminate);		Q_ASSERT_X (res, "connect", "connection is not established");	// остановка работы потока
+
+    emit startAction(); // Запуск действия
+
 }
 
 void MainWindow::terminate() {
