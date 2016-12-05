@@ -9,11 +9,15 @@ class GenRandomData : public QSharedData
 public:
 
     double key;
+    QVector<double> volTime;
+    QVector<double> volData;
 };
 
 GenRandom::GenRandom(QObject *parent) : QObject(parent), data(new GenRandomData)
 {
-
+//    data->key = 0;
+//    data->volTime.clear();
+//    data->volData.clear();
 }
 
 GenRandom::GenRandom(const GenRandom &rhs) : data(rhs.data)
@@ -30,15 +34,17 @@ GenRandom &GenRandom::operator=(const GenRandom &rhs)
 
 GenRandom::~GenRandom()
 {
-
+    qDebug() << "delete Random";
 }
 // * ---- End default
 
-void GenRandom::terminate()
+void GenRandom::terminateSlot()
 {
-    killTimer(_int_timer);
     _tmr.stop();
+    killTimer(_int_timer);
     //delete data; ??
+    data->volTime.clear();
+    data->volData.clear();
     data->key= 0;
     emit finished();
 }
@@ -46,12 +52,13 @@ void GenRandom::terminate()
 void GenRandom::doActionSlot()
 {
     bool res;
-    // emit change
+    emit changed( data->volTime.count() );
     res = QObject::connect (&_tmr, &QTimer::timeout, this, &GenRandom::doWorkSlot);	Q_ASSERT_X (res, "connect", "connection is not established");	// связывание внешнего таймера
+    qDebug() << "doActionSlot";
     _tmr.start(1*1000);     // запуск внешнего таймера
     thread()->sleep(1);     // выжидание 1 сек...
     doWorkSlot();               // ... выдача состояния ...
-    startTimer(1*1000);     // ... и установка внутреннего таймера
+    _int_timer = startTimer(1*1000);     // ... и установка внутреннего таймера
 }
 
 void GenRandom::timerEvent(QTimerEvent *ev)
@@ -63,4 +70,9 @@ void GenRandom::timerEvent(QTimerEvent *ev)
 void GenRandom::doWorkSlot() {
     // Gnerate random
     data->key +=1;
+    data->volTime.push_back( QDateTime::currentDateTime().toTime_t() );
+    data->volData.push_back( (double)( qrand()/(double)RAND_MAX-0.5 )*3 );
+
+    emit changed( data->volTime.count() ); // значения изменились
+
 }

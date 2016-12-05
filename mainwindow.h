@@ -18,9 +18,13 @@ class MainWindow : public QMainWindow
 
     ThreadedObject<GenRandom>   _obj;
 
+
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+
+    int     _int_timer; // Внутренний таймер
+
     double my_rand();
     double my_rand(int accuracy);
     // Generate random time/data values
@@ -34,8 +38,12 @@ signals:
     void startAction (void);		// сигнал "запуск действия"
     void finish (void);				// сигнал "завершение работы"
 
+public slots:
+    void terminate (void); //			{ emit finish (); }		// завершение работы приложения
+
 private slots:
-    void connectObject (void);		// установка связей с объектом
+    void newGenDataSlot(const int &newCount);          // Появились новые данные
+    void connectObjectSlot (void);		// установка связей с объектом
     void everySecSlot();
     void realtimeMyDataSlot();
 

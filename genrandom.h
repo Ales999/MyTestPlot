@@ -26,11 +26,11 @@ protected:
     void timerEvent(QTimerEvent *ev);
 
 signals:
-    void changed(void);
-    void finished(void);
+    void changed(const int &newCount);     // Сигнал "новые данные"
+    void finished(void);    // Сигнал "остановка работы"
 
 public slots:
-    void terminate();           // досрочная остановка
+    void terminateSlot();           // досрочная остановка
     void doActionSlot(void);
 
 private slots:
