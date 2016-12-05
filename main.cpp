@@ -114,16 +114,18 @@ signals:
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    //MainWindow w;
-    //w.show();
+    MainWindow w;
+    w.show();
     // ---------------------------------------------
     // Test THread
+    /*
     App a;      // объект
     bool res;   // признак успешности операции
     a.startTimer(0);
     res = QObject::connect (&a, SIGNAL (finish ()), &app, SLOT (quit ()));
     Q_ASSERT_X (res, "connect", "connection is not established");	// окончание работы объекта закрывает приложение
     res = QObject::connect (&app, SIGNAL (lastWindowClosed ()), &a, SLOT (terminate ()));	Q_ASSERT_X (res, "connect", "connection is not established");	// окончание работы приложения закрывает объект
+    */
     // ---------------------------------------------
     return app.exec();
 }

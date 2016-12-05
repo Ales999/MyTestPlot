@@ -4,6 +4,8 @@
 
 #include <cstdlib>
 
+#include "ThreadedObject.h"
+
 //#include "ta-lib/ta_abstract.h"
 //#include <ta-lib/ta_libc.h>
 
@@ -16,13 +18,34 @@ MainWindow::MainWindow(QWidget *parent) :
     QTime midnight(0,0,0);
     qsrand( midnight.secsTo(QTime::currentTime()) );
     setGeometry(400, 250, 1042, 390);
+    // Запуск потока, - сработает timerEvent в данном потоке
+    startTimer(0);
     // Запуск
+
     setupPlot();
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+// Запуск таймера в данном потоке
+void MainWindow::timerEvent(QTimerEvent *ev)
+{
+    bool res;
+    killTimer(ev->timerId());   // Остановка таймера
+    res = QObject::connect (&_obj, SIGNAL (objectIsReady ()), this, SLOT (connectObject ()));   Q_ASSERT_X (res, "connect", "connection is not established");	// установка связей с объектом
+    _obj.starting (SIGNAL (finished ()), SLOT (terminate ()), QThread::HighPriority);           // запуск потока с высоким приоритетом
+}
+
+void MainWindow::connectObject()
+{
+    bool res;
+    res = QObject::connect (this, &MainWindow::finish, _obj, &GenRandom::terminate);				Q_ASSERT_X (res, "connect", "connection is not established");	// закрытие этого объекта хакрывает объект в потоке
+    res = QObject::connect (this, &MainWindow::startAction, _obj, &GenRandom::doActionSlot);			Q_ASSERT_X (res, "connect", "connection is not established");	// установка сигнала запуска действия
+    res = QObject::connect (_obj, &GenRandom::finished, this, &MainWindow::finish);				Q_ASSERT_X (res, "connect", "connection is not established");	// конец операции завершает работу приложения
+    //res = QObject::connect (_obj, &Operation::addText, this, &App::setText);				Q_ASSERT_X (res, "connect", "connection is not established");	// установка надписи на кнопку
+    //res = QObject::connect (&_btn, &QPushButton::clicked, _obj, &Operation::terminate);		Q_ASSERT_X (res, "connect", "connection is not established");	// остановка работы потока
 }
 
 double MainWindow::my_rand()

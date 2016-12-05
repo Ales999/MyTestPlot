@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <QTimer>
 
+#include "threadedobject.h"
+#include "genrandom.h"
 #include "qcustomplot.h"
 
 namespace Ui {
@@ -13,6 +15,8 @@ class MainWindow;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
+
+    ThreadedObject<GenRandom>   _obj;
 
 public:
     explicit MainWindow(QWidget *parent = 0);
@@ -26,9 +30,17 @@ public:
     void setupPlot();
     void setupRealMyTimePlot(QCustomPlot *customPlot);
 
+signals:
+    void startAction (void);		// сигнал "запуск действия"
+    void finish (void);				// сигнал "завершение работы"
+
 private slots:
-  void everySecSlot();
-  void realtimeMyDataSlot();
+    void connectObject (void);		// установка связей с объектом
+    void everySecSlot();
+    void realtimeMyDataSlot();
+
+protected:
+    void timerEvent(QTimerEvent *ev);
 
 private:
     Ui::MainWindow *ui;
