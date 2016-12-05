@@ -32,15 +32,19 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+
     QString demoName;
     QTimer dataTimer;
     QTimer timeAlign;
     QCPFinancial *ohlc;
     QVector<double> volTime, volData;
+
     double startTime;
     double graphStartTime;
     double timeBinSize;
     double lastPush;
+    //void TestTALib();
+
     // My Dev version
     QCPFinancialDataMap timeSeriesToOhlcOne(const QVector<double> &time, const QVector<double> &value, double timeBinSize, double timeBinOffset);
 };

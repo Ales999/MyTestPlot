@@ -2,6 +2,11 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <cstdlib>
+
+//#include "ta-lib/ta_abstract.h"
+//#include <ta-lib/ta_libc.h>
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -11,7 +16,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QTime midnight(0,0,0);
     qsrand( midnight.secsTo(QTime::currentTime()) );
     setGeometry(400, 250, 1042, 390);
-    //
+    // Запуск
     setupPlot();
 }
 
@@ -34,19 +39,22 @@ void MainWindow::setupPlot()
     ui->customPlot->replot();
 }
 
-
+// СЛОТ получает сигналы от таймера каждую секунду
 void MainWindow::everySecSlot()
 {
     static bool First = true;
-    int genTimeMinutes = 3;
+    int genTimeMinutes = 10;
     // 1/2 minute shift
     int secShift = 30;
     QTime sqtime(QTime::currentTime());
-
+    // Если сейчас 30 секунд
     if( sqtime.second() == secShift )
     {
+        // Если это _первый_запуск_ после _старта_программы_
+
         if (First )
         {
+            // Генерируем ретроспективу на genTimeMinutes минут назад и отображаем на графике
             First = false;
             ui->customPlot->setVisible(true);
             ui->waitingLabel->setVisible(false);
@@ -60,6 +68,8 @@ void MainWindow::everySecSlot()
 
 
             InitRandomData(volTime, volData, graphStartTime, genTimeMinutes );
+            //
+            // TestTALib();
 
             QCPFinancialDataMap data2 = QCPFinancial::timeSeriesToOhlc(volTime, volData, timeBinSize, 0);
             // Debug output
@@ -73,12 +83,25 @@ void MainWindow::everySecSlot()
         } else
             QTimer::singleShot(0, this, SLOT(realtimeMyDataSlot()));
     }
-    // Update graphics
-    if (sqtime.second() == 0)
+
+    // Если сейчас 00 секунд
+    if (sqtime.second() == 0) {
+        qDebug() << "Graph count:   " << ohlc->data()->count();
+        // remove old OHCL visible data if more 5 min
+        if ( ohlc->data()->count() > genTimeMinutes ) {
+            ohlc->data()->remove( ohlc->data()->first().key );
+            qDebug() << "First Graph key:   " << QDateTime::fromTime_t( ohlc->data()->first().key  ).toUTC().toString("hh:mm:ss");
+            // New set visible data range
+            ui->customPlot->xAxis->setRange( volTime.first(), volTime.last() );
+        }
+        // Перерисовываем сам график
         ui->customPlot->replot();
+    }
 
 }
 
+// СЛОТ выполняется каждую секунду из everySecSlot если сейчас 30-я секунда и это не первый запуск уже
+// Выполняем _минутную_ генерацию
 void MainWindow::realtimeMyDataSlot()
 {
 
@@ -90,9 +113,9 @@ void MainWindow::realtimeMyDataSlot()
 
     InitRandomData(loTime, loData, this->startTime );
 
-    qDebug() << "R/T Time Count:        " << loTime.count();
     qDebug() << "R/T Time First:        " << QDateTime::fromTime_t( loTime.first() ).toUTC().toString("hh:mm:ss");
     qDebug() << "R/T Time Last:         " << QDateTime::fromTime_t( loTime.last()  ).toUTC().toString("hh:mm:ss");
+    qDebug() << "R/T Time Count:        " << loTime.count();
 
     QCPFinancialDataMap dataNew = QCPFinancial::timeSeriesToOhlc(loTime, loData, this->timeBinSize, 0);
 
@@ -214,6 +237,7 @@ void MainWindow::setupRealMyTimePlot(QCustomPlot *customPlot)
     customPlot->yAxis->scaleRange(1.1, customPlot->yAxis->range().center());
 
     qDebug() << "------------------ END Setup Plot ---------------------";
+
     // Start generate and update graph for 1 min interval
     connect(&timeAlign, SIGNAL(timeout()), this, SLOT(everySecSlot()));
     timeAlign.start(1000);
@@ -221,7 +245,55 @@ void MainWindow::setupRealMyTimePlot(QCustomPlot *customPlot)
 
 }
 
-// My Dev version
+// First Test TA-Lib
+/*
+void MainWindow::TestTALib() {
+
+    //    Препаре TA-Lib
+    double in[20];
+    int length = ( sizeof(in) / sizeof(*in) );
+
+    // Fill the array
+    for (int i = 0; i < length; i++) {
+        in[i] = volData[i] ;
+    }
+
+    TA_Real     out[length];
+    TA_Integer  outBeg;
+    TA_Integer outNbElement;
+    TA_RetCode retCode;
+    int timePeriod = 10;
+
+    retCode = TA_Initialize();
+    if (retCode != TA_SUCCESS ) {
+        qFatal("TA-Lib not initialized, code: %d\n", retCode);
+    } else {
+        // Shift out pointer
+        double *outp = out+TA_SMA_Lookback(timePeriod);
+        retCode = TA_SMA(
+                0,
+                length-1,
+                &in[0],
+                timePeriod,
+                &outBeg,
+                &outNbElement,
+                &outp[0] );
+
+        qDebug( "outBeg=%d outNbElement=%d \n", outBeg, outNbElement );
+
+        for(int i=0; i < outNbElement; i++ )
+                    qDebug( "Day %d\t= %.1f=>%.1f", outBeg+i, in[outBeg+i], out[outBeg+i] );
+
+
+    }
+
+    // Shutdown TA-Lib
+    TA_Shutdown();
+    // End TA-Lib
+}
+*/
+
+// My Dev version - for visible code
 QCPFinancialDataMap MainWindow::timeSeriesToOhlcOne(const QVector<double> &time, const QVector<double> &value, double timeBinSize, double timeBinOffset)
 {
   QCPFinancialDataMap map;
