@@ -20,11 +20,7 @@ MainWindow::MainWindow(QWidget *parent) :
     qsrand( midnight.secsTo(QTime::currentTime()) );
     setGeometry(400, 250, 1042, 390);
     // Запуск потока, - сработает timerEvent в данном потоке
-    //_int_timer = startTimer(0);
-    //res = QObject::connect ( this, SIGNAL ( QApplication::lastWindowClosed ()), &_obj, SLOT (terminate ()));
-    //res = QApplication::connect(parent, SIGNAL ( QApplication::lastWindowClosed ()), &_obj, SLOT (terminate ()));
-    //Q_ASSERT_X (res, "connect", "connection is not established");	// окончание работы приложения закрывает объект
-    // Запуск
+    _int_timer = startTimer(0);
 
     setupPlot();
 }
@@ -67,7 +63,12 @@ void MainWindow::terminate() {
 
 void MainWindow::newGenDataSlot(const int &newCount)
 {
-    qDebug() << "Count: " << newCount;
+    //qDebug() << "Count: " << newCount;
+
+    ui->statusBar->showMessage(
+      QString("Count: %1")
+            .arg( newCount )
+            ,0);
 }
 
 

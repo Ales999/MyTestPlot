@@ -117,14 +117,14 @@ signals:
 int main(int argc, char *argv[])
 {
     bool res;
-    int strtmt;
+    //int strtmt;
     QApplication app(argc, argv);
     MainWindow mainWin;
-
+    /*
     strtmt = mainWin.startTimer(0);
     qDebug() << "Start timer: " << strtmt;
     mainWin._int_timer = strtmt;
-
+*/
     mainWin.show();
 
     res = QObject::connect (&app, SIGNAL (lastWindowClosed ()), &mainWin, SLOT (terminate ())); Q_ASSERT_X (res, "connect", "connection is not established");

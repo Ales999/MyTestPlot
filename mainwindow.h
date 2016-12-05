@@ -17,13 +17,11 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
     ThreadedObject<GenRandom>   _obj;
-
+    int     _int_timer; // Внутренний таймер
 
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-
-    int     _int_timer; // Внутренний таймер
 
     double my_rand();
     double my_rand(int accuracy);
