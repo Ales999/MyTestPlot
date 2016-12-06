@@ -16,6 +16,7 @@ public:
 GenRandom::GenRandom(QObject *parent) : QObject(parent), data(new GenRandomData)
 {
     data->key = 0;
+    qDebug()<<"From worker thread: " << QThread::currentThreadId();
 }
 
 GenRandom::GenRandom(const GenRandom &rhs) : data(rhs.data)
@@ -50,10 +51,10 @@ void GenRandom::terminateSlot()
 void GenRandom::doActionSlot()
 {
     bool res;
+    qDebug() << "doActionSlot";
     emit changed( data->volTime.count() );
     res = QObject::connect (&_tmr, &QTimer::timeout, this, &GenRandom::doWorkSlot);	Q_ASSERT_X (res, "connect", "connection is not established");	// связывание внешнего таймера
-    //qDebug() << "doActionSlot";
-    _tmr.start(1*1000);     // запуск внешнего таймера
+    //_tmr.start(1*1000);     // запуск внешнего таймера ??? А зачем ?
     thread()->sleep(1);     // выжидание 1 сек...
     doWorkSlot();               // ... выдача состояния ...
     _int_timer = startTimer(1*1000);     // ... и установка внутреннего таймера
@@ -61,12 +62,14 @@ void GenRandom::doActionSlot()
 
 void GenRandom::timerEvent(QTimerEvent *ev)
 {   // внутренний таймер
+    qDebug() << "timerEvent: " << data->key ;
     if(ev->timerId() == _int_timer) doWorkSlot(); // private slot
     else QObject::timerEvent(ev);
 }
 
 void GenRandom::doWorkSlot() {
     // Gnerate random
+    qDebug() <<  "doWorkSlot: " << data->key ;
     data->key +=1;
     data->volTime.push_back( QDateTime::currentDateTime().toTime_t() );
     data->volData.push_back( (double)( qrand()/(double)RAND_MAX-0.5 )*3 );

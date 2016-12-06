@@ -15,8 +15,8 @@ int main(int argc, char *argv[])
     return app.exec();
 }
 
-
 /*
+
 
 // **
 // **  Выполнение операции
@@ -52,13 +52,13 @@ public slots:
         bool res;
         emit addText (QString ("- %1 -"). arg (*Int));
         res = QObject::connect (&_tmr, &QTimer::timeout, this, &Operation::doWork);	Q_ASSERT_X (res, "connect", "connection is not established");	// связывание внешнего таймера
-        _tmr.start (1000);			// запуск внешнего таймера
+        _tmr.start (2000);			// запуск внешнего таймера
         thread()->sleep (1);		// выжидание 1 сек...
         doWork ();					// ... выдача состояния ...
-        startTimer (1000);			// ... и установка внутреннего таймера
+        startTimer (2000);			// ... и установка внутреннего таймера
     }
 protected:
-    //void timerEvent (QTimerEvent *ev)	{ timeout (); }		// внутренний таймер
+    // внутренний таймер
     void timerEvent (QTimerEvent *ev)
     {   // внутренний таймер
         if(ev->timerId() == _int_timer) doWork(); // private slot

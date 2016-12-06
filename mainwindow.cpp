@@ -20,6 +20,7 @@ MainWindow::MainWindow(QWidget *parent) :
     qsrand( midnight.secsTo(QTime::currentTime()) );
     setGeometry(400, 250, 1042, 390);
     // Запуск потока, - сработает timerEvent в данном потоке
+    qDebug()<<"From main thread: "<<QThread::currentThreadId();
     _int_timer = startTimer(0);
 
     setupPlot();
