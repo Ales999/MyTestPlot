@@ -48,11 +48,13 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
         qcustomplot.cpp \
-    genrandom.cpp
+    genrandom.cpp \
+    testplotmodel.cpp
 
 HEADERS  += mainwindow.h \
          qcustomplot.h \
     threadedobject.h \
-    genrandom.h
+    genrandom.h \
+    testplotmodel.h
 
 FORMS    += mainwindow.ui
