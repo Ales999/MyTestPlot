@@ -49,12 +49,15 @@ SOURCES += main.cpp\
         mainwindow.cpp \
         qcustomplot.cpp \
     genrandom.cpp \
-    testplotmodel.cpp
+    testplotmodel.cpp \
+    testplotpresenter.cpp
 
 HEADERS  += mainwindow.h \
          qcustomplot.h \
     threadedobject.h \
     genrandom.h \
-    testplotmodel.h
+    testplotmodel.h \
+    testplotpresenter.h \
+    itestplotview.h
 
 FORMS    += mainwindow.ui
