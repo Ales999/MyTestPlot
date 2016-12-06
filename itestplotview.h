@@ -1,0 +1,4 @@
+#ifndef ITESTPLOTVIEW_H
+#define ITESTPLOTVIEW_H
+
+#endif // ITESTPLOTVIEW_H
