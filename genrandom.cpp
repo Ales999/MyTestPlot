@@ -93,6 +93,12 @@ void GenRandom::doWorkSlot() {
     data->volTime.push_back( QDateTime::currentDateTime().toTime_t() );
     data->volData.push_back( (double)( qrand()/(double)RAND_MAX-0.5 )*3 );
 
+    // Maximum data for 30 days
+    if(data->volTime.count() > 600 /* 3600*24*30 */ ) {
+        data->volTime.removeFirst();
+        data->volData.removeFirst();
+    }
+
     emit changed( data->volTime.count() ); // значения изменились
 
 }
