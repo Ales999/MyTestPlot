@@ -34,13 +34,13 @@ public:
 
 signals:
     void startAction (void);		// сигнал "запуск действия"
-    void finish (void);				// сигнал "завершение работы"
+    void doFinishSlot (void);				// сигнал "завершение работы"
 
 public slots:
     void terminate (void); //			{ emit finish (); }		// завершение работы приложения
 
 private slots:
-    void newGenDataSlot(const int &newCount);          // Появились новые данные
+    void doChangedSlot(const int &newCount);          // Появились новые данные
     void connectObjectSlot (void);		// установка связей с объектом
     void everySecSlot();
     void realtimeMyDataSlot();
@@ -52,8 +52,8 @@ private:
     Ui::MainWindow *ui;
 
     QString demoName;
-    QTimer dataTimer;
-    QTimer timeAlign;
+    //QTimer dataTimer;
+    QTimer alignTimer;
     QCPFinancial *ohlc;
     QVector<double> volTime, volData;
 
@@ -63,8 +63,6 @@ private:
     double lastPush;
     //void TestTALib();
 
-    // My Dev version
-    QCPFinancialDataMap timeSeriesToOhlcOne(const QVector<double> &time, const QVector<double> &value, double timeBinSize, double timeBinOffset);
 };
 
 #endif // MAINWINDOW_H
