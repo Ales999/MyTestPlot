@@ -6,6 +6,9 @@
 
 QT       += core gui
 
+CONFIG	+= qt
+CONFIG	+= c++11
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
 ## ---------------------------
@@ -16,8 +19,27 @@ macx {
     -mmacosx-version-min=10.12
 }
 
-## ---------------------------
+## -------- Homebrew Ta-Lib  ----------------
+#mac{
+#INCLUDEPATH += /usr/local/Cellar/ta-lib/0.4.0/include
+#LIBS += -L/usr/local/Cellar/ta-lib//0.4.0/lib
+#LIBS += -lta_lib
+#}
 
+## ---------------------------------
+
+
+## ---------------------------------
+
+mac{
+#LIBS+= -dead_strip
+QMAKE_MAC_SDK = macosx10.12
+
+#LIBS += -framework CoreFoundation
+#LIBS += -framework ApplicationServices
+}
+
+## ---------------------------------
 
 TARGET = MyTestPlot
 TEMPLATE = app
@@ -25,9 +47,12 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-        qcustomplot.cpp
+        qcustomplot.cpp \
+    genrandom.cpp
 
 HEADERS  += mainwindow.h \
-         qcustomplot.h
+         qcustomplot.h \
+    threadedobject.h \
+    genrandom.h
 
 FORMS    += mainwindow.ui
