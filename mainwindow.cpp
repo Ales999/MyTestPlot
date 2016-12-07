@@ -13,15 +13,16 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-    //bool res;
     ui->setupUi(this);
+
     lastPush = 20;
     QTime midnight(0,0,0);
     qsrand( midnight.secsTo(QTime::currentTime()) );
     setGeometry(400, 250, 1042, 390);
     // Запуск потока, - сработает timerEvent в данном потоке
     qDebug()<<"From main thread: "<<QThread::currentThreadId();
-    _int_timer = startTimer(0);
+
+    //_int_timer = startTimer(0);
 
     setupPlot();
 }
@@ -30,48 +31,14 @@ MainWindow::~MainWindow()
 {
     delete ui;
 }
-// Запуск таймера в данном потоке
-void MainWindow::timerEvent(QTimerEvent *ev)
+// From interface
+void MainWindow::setStatusBarMassage(QString message) const
 {
-    qDebug() << "Timer ID:" << ev->timerId();
-
-    if( ev->timerId() == _int_timer )
-    {
-        bool res;
-        killTimer(ev->timerId());   // Остановка таймера
-        res = QObject::connect (&_obj, SIGNAL (objectIsReady ()), this, SLOT (connectObjectSlot ()));   Q_ASSERT_X (res, "connect", "connection is not established");	// установка связей с объектом
-        _obj.starting (SIGNAL (finished ()), SLOT ( terminateSlot ()), QThread::HighPriority);           // запуск потока с высоким приоритетом
-    } else
-        QObject::timerEvent(ev);
+        ui->statusBar->showMessage(
+          QString("%1")
+                    .arg( message )
+                    ,0);
 }
-
-void MainWindow::connectObjectSlot()
-{
-    bool res;
-    res = QObject::connect (this, &MainWindow::finish, _obj, &GenRandom::terminateSlot);        Q_ASSERT_X (res, "connect", "connection is not established");	// закрытие этого объекта хакрывает объект в потоке
-    res = QObject::connect (this, &MainWindow::startAction, _obj, &GenRandom::doActionSlot);    Q_ASSERT_X (res, "connect", "connection is not established");	// установка сигнала запуска действия
-    res = QObject::connect (_obj, &GenRandom::finished, this, &MainWindow::finish);             Q_ASSERT_X (res, "connect", "connection is not established");	// конец операции завершает работу приложения
-    res = QObject::connect (_obj, &GenRandom::changed, this, &MainWindow::newGenDataSlot);        Q_ASSERT_X (res, "connect", "connection is not established");	// установка надписи на кнопку
-    //res = QObject::connect (&_btn, &QPushButton::clicked, _obj, &Operation::terminate);		Q_ASSERT_X (res, "connect", "connection is not established");	// остановка работы потока
-
-    emit startAction(); // Запуск действия
-
-}
-
-void MainWindow::terminate() {
-    emit finish ();
-}
-
-void MainWindow::newGenDataSlot(const int &newCount)
-{
-    //qDebug() << "Count: " << newCount;
-
-    ui->statusBar->showMessage(
-      QString("Count: %1")
-            .arg( newCount )
-            ,0);
-}
-
 
 double MainWindow::my_rand()
 {
@@ -287,8 +254,8 @@ void MainWindow::setupRealMyTimePlot(QCustomPlot *customPlot)
     qDebug() << "------------------ END Setup Plot ---------------------";
 
     // Start generate and update graph for 1 min interval
-    connect(&timeAlign, SIGNAL(timeout()), this, SLOT(everySecSlot()));
-    timeAlign.start(1000);
+    connect(&alignTimer, SIGNAL(timeout()), this, SLOT(everySecSlot()));
+    alignTimer.start(1000);
 
 
 }
@@ -341,42 +308,4 @@ void MainWindow::TestTALib() {
 }
 */
 
-// My Dev version - for visible code
-QCPFinancialDataMap MainWindow::timeSeriesToOhlcOne(const QVector<double> &time, const QVector<double> &value, double timeBinSize, double timeBinOffset)
-{
-  QCPFinancialDataMap map;
-  int count = qMin(time.size(), value.size());
-  if (count == 0)
-    return QCPFinancialDataMap();
-
-  QCPFinancialData currentBinData(0, value.first(), value.first(), value.first(), value.first());
-  int currentBinIndex = qFloor((time.first()-timeBinOffset)/timeBinSize+0.5);
-  for (int i=0; i<count; ++i)
-  {
-    int index = qFloor((time.at(i)-timeBinOffset)/timeBinSize+0.5);
-    if (currentBinIndex == index) // data point still in current bin, extend high/low:
-    {
-      if (value.at(i) < currentBinData.low) currentBinData.low = value.at(i);
-      if (value.at(i) > currentBinData.high) currentBinData.high = value.at(i);
-      if (i == count-1) // last data point is in current bin, finalize bin:
-      {
-        currentBinData.close = value.at(i);
-        currentBinData.key = timeBinOffset+(index)*timeBinSize;
-        map.insert(currentBinData.key, currentBinData);
-      }
-    } else // data point not anymore in current bin, set close of old and open of new bin, and add old to map:
-    {
-      // finalize current bin:
-      currentBinData.close = value.at(i-1);
-      currentBinData.key = timeBinOffset+(index-1)*timeBinSize;
-      map.insert(currentBinData.key, currentBinData);
-      // start next bin:
-      currentBinIndex = index;
-      currentBinData.open = value.at(i);
-      currentBinData.high = value.at(i);
-      currentBinData.low = value.at(i);
-    }
-  }
-
-  return map;
-}
+// #include "mainwindow.moc"

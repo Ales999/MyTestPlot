@@ -8,14 +8,15 @@ class GenRandomData : public QSharedData
 {
 public:
 
-    double key;
-    QVector<double> volTime;
-    QVector<double> volData;
+    QMap<double, double> time2data;
+    //QVector<double> volTime;
+    //QVector<double> volData;
 };
 
 GenRandom::GenRandom(QObject *parent) : QObject(parent), data(new GenRandomData)
 {
-    data->key = 0;
+    qRegisterMetaType<NewGenData>("NewGenData");
+
     qDebug()<<"From worker thread: " << QThread::currentThreadId();
 }
 
@@ -33,25 +34,30 @@ GenRandom &GenRandom::operator=(const GenRandom &rhs)
 
 GenRandom::~GenRandom()
 {
-    //qDebug() << "delete Random";
+    qDebug() << "delete Random";
 }
 // * ---- End default
 
-void GenRandom::terminateSlot()
+void GenRandom::doTerminateSlot()
 {
-    _tmr.stop();
+    qDebug() << "doTerminateSlot";
+    //_tmr.stop();  // нужен при первом способе
     killTimer(_int_timer);
-    //delete data; ??
-    data->volTime.clear();
-    data->volData.clear();
-    data->key= 0;
+
+    // start delete data
+    data->time2data.clear();
+    //data->volTime.clear();
+    //data->volData.clear();
+    //data->key= 0;
+    // end delete data
+
     emit finished();
 }
 
 void GenRandom::doActionSlot()
 {
-    // qDebug() << "doActionSlot";
-    emit changed( data->volTime.count() );
+    qDebug() << "doActionSlot";
+    //emit changed( data->volTime.count() );
 
     // -------   START Timer(s) BLOCK --------------
 
@@ -89,10 +95,10 @@ void GenRandom::timerEvent(QTimerEvent *ev)
 void GenRandom::doWorkSlot() {
     // Gnerate random
     //qDebug() <<  "doWorkSlot: " << data->key ;
-    data->key +=1;
-    data->volTime.push_back( QDateTime::currentDateTime().toTime_t() );
-    data->volData.push_back( (double)( qrand()/(double)RAND_MAX-0.5 )*3 );
+    data->time2data.clear();
+    data->time2data.insert( QDateTime::currentDateTime().toTime_t(), (double)( qrand()/(double)RAND_MAX-0.5 )*3 );
+    // Maximum data for 30 days
 
-    emit changed( data->volTime.count() ); // значения изменились
+    emit changed( data->time2data ); // значения изменились
 
 }

@@ -20,24 +20,26 @@ macx {
 }
 
 ## -------- Homebrew Ta-Lib  ----------------
+# mac{
+# INCLUDEPATH += /usr/local/Cellar/ta-lib/0.4.0/include
+# LIBS += -L/usr/local/Cellar/ta-lib//0.4.0/lib
+# LIBS += -lta_lib
+# подключение компилятором библиотеки math.c (используется в ta_lib).
+# LIBS += -lm
+# }
+
+## ---------------------------------
+
+
+## ---------------------------------
+
 #mac{
-#INCLUDEPATH += /usr/local/Cellar/ta-lib/0.4.0/include
-#LIBS += -L/usr/local/Cellar/ta-lib//0.4.0/lib
-#LIBS += -lta_lib
-#}
-
-## ---------------------------------
-
-
-## ---------------------------------
-
-mac{
 #LIBS+= -dead_strip
-QMAKE_MAC_SDK = macosx10.12
+#QMAKE_MAC_SDK = macosx10.12
 
 #LIBS += -framework CoreFoundation
 #LIBS += -framework ApplicationServices
-}
+#}
 
 ## ---------------------------------
 
@@ -48,11 +50,16 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
         qcustomplot.cpp \
-    genrandom.cpp
+    genrandom.cpp \
+    testplotmodel.cpp \
+    testplotpresenter.cpp
 
 HEADERS  += mainwindow.h \
          qcustomplot.h \
     threadedobject.h \
-    genrandom.h
+    genrandom.h \
+    testplotmodel.h \
+    testplotpresenter.h \
+    itestplotview.h
 
 FORMS    += mainwindow.ui

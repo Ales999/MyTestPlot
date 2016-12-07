@@ -7,6 +7,8 @@
 // My add
 #include <QTimer>
 
+typedef QMap<double, double> NewGenData;
+
 class GenRandomData;
 
 class GenRandom : public QObject
@@ -17,11 +19,11 @@ class GenRandom : public QObject
     int     _int_timer; // ID Внутреннего таймера
 
 signals:
-    void changed(const int &newCount);      // Сигнал "новые данные"
+    void changed(const NewGenData &newData);      // Сигнал "новые данные"
     void finished(void);                    // Сигнал "остановка работы"
 
 public slots:
-    void terminateSlot();                   // досрочная остановка
+    void doTerminateSlot();                   // досрочная остановка
     void doActionSlot(void);
 
 private slots:
