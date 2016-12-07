@@ -60,6 +60,7 @@ HEADERS  += mainwindow.h \
     genrandom.h \
     testplotmodel.h \
     testplotpresenter.h \
-    itestplotview.h
+    itestplotview.h \
+    depthitem.h
 
 FORMS    += mainwindow.ui
