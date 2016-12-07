@@ -52,7 +52,8 @@ SOURCES += main.cpp\
         qcustomplot.cpp \
     genrandom.cpp \
     testplotmodel.cpp \
-    testplotpresenter.cpp
+    testplotpresenter.cpp \
+    depthitem.cpp
 
 HEADERS  += mainwindow.h \
          qcustomplot.h \
