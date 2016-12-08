@@ -24,7 +24,7 @@ QModelIndex DepthModel::parent(const QModelIndex &) const
 
 int DepthModel::rowCount(const QModelIndex &) const
 {
-    return priceList.count(); //+grouped;
+    return priceList.count()+grouped;
 }
 
 int DepthModel::columnCount(const QModelIndex &) const
@@ -52,7 +52,7 @@ void DepthModel::depthUpdateOrders(QList<DepthItem> *items)
     if(items==0)return;
     for(int n=0;n<items->count();n++) depthUpdateOrder( items->at(n) );
     delete items;
-    //calculateSize();
+    //calculateSize();  // TODO: implement and enable this line
 }
 
 double &DepthModel::sizeListAt(int row)
@@ -74,9 +74,9 @@ void DepthModel::sizeListRemoveAt(int row)
 void DepthModel::depthUpdateOrder(DepthItem item)
 {
     double price = item.price;
+    if(price == 0.0) return;
+
     double volume = item.volume;
-    int grouped = 0;     // temp TODO:remove this line
-    if(price==0.0)return;
     int currentIndex = qLowerBound(priceList.begin(), priceList.end(), price) - priceList.begin();
     bool matchListRang = currentIndex>-1 && priceList.count()>currentIndex;
 

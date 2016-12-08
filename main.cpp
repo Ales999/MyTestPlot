@@ -17,6 +17,8 @@ void BaseValues::Construct()
 {
     timeFormat=QLocale().timeFormat(QLocale::LongFormat).replace(" ","").replace("t","");
     dateTimeFormat=QLocale().dateFormat(QLocale::ShortFormat)+" "+timeFormat;
+
+    groupPriceValue=0.0;
 }
 
 

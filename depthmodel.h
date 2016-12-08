@@ -4,6 +4,7 @@
 #include <QAbstractItemModel>
 #include <QStringList>
 #include "depthitem.h"
+#include "main.h"
 
 class DepthModel : public QAbstractItemModel
 {

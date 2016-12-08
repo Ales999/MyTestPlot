@@ -3,9 +3,14 @@
 
 #include <QString>
 
+#define grouped (baseValues_->groupPriceValue>0.0?2:0)
+
+
 struct BaseValues
 {
     void Construct();
+    double groupPriceValue;
+
     QString timeFormat;
     QString dateTimeFormat;
 };
