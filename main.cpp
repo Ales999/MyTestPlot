@@ -19,7 +19,9 @@ int main(int argc, char *argv[])
     MainWindow *mainWin = new MainWindow();
 
     TestPlotPresenter *presenter = new TestPlotPresenter(mainWin);
+    DepthModelPresenter *depthpresener = new DepthModelPresenter(mainWin);
     Q_UNUSED(presenter);
+    Q_UNUSED(depthpresener);
     //mainWin.show();
 
     mainWin->show();
