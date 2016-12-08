@@ -66,6 +66,7 @@ HEADERS  += mainwindow.h \
     itestplotview.h \
     depthitem.h \
     depthmodel.h \
-    depthmodelpresenter.h
+    depthmodelpresenter.h \
+    main.h
 
 FORMS    += mainwindow.ui

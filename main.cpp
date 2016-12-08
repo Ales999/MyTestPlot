@@ -1,21 +1,33 @@
+#include "main.h"
+
 #include "mainwindow.h"
 #include <QApplication>
 
 #include "testplotpresenter.h"
 #include "depthmodelpresenter.h"
 
+BaseValues *baseValues_;
+
 // **  https://habrahabr.ru/post/203254/
 // ** #include "ThreadedObject.h"
 
 // #include "main.moc"
 
+void BaseValues::Construct()
+{
+    timeFormat=QLocale().timeFormat(QLocale::LongFormat).replace(" ","").replace("t","");
+    dateTimeFormat=QLocale().dateFormat(QLocale::ShortFormat)+" "+timeFormat;
+}
+
+
 int main(int argc, char *argv[])
 {
     bool res;
-    //int strtmt;
-    QApplication app(argc, argv);
-    //MainWindow mainWin;
+    baseValues_ = new BaseValues;
+    // Первоначальная инициализация стуктуры данными
+    baseValues.Construct();
 
+    QApplication app(argc, argv);
     MainWindow *mainWin = new MainWindow();
 
     TestPlotPresenter *presenter = new TestPlotPresenter(mainWin);
