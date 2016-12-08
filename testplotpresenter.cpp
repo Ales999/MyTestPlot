@@ -1,6 +1,8 @@
 #include "testplotpresenter.h"
 #include "itestplotview.h"
 
+#include "main.h"
+
 // https://habrahabr.ru/post/107698/
 
 TestPlotPresenter::TestPlotPresenter(ITestPlotView *view, QObject *parent)
@@ -52,7 +54,7 @@ void TestPlotPresenter::gr_doChangedSlot(const QMap<double, double> &newData)
 
     if( !newData.isEmpty())
     {
-        strKey = QDateTime::fromTime_t( newData.firstKey() ).toString("hh:mm:ss");
+        strKey = QDateTime::fromTime_t( newData.firstKey() ).toString( baseValues.timeFormat );
         dataVol = newData.value(newData.firstKey());
         //qDebug() << "gr_doChangedSlot: " << QDateTime::fromTime_t( newData.firstKey() ).toUTC().toString("hh:mm:ss")  << " : " << newData.value(newData.firstKey()) ;
 
@@ -76,11 +78,11 @@ void TestPlotPresenter::gr_doConnectObjectSlot()
     qDebug() << "gr_doConnectObjectSlot";
     bool res;
 
-    res = QObject::connect (this, &TestPlotPresenter::gr_startAction,  gr_obj, &GenRandom::doActionSlot);       Q_ASSERT_X (res, "connect", "connection is not established");	// установка сигнала запуска действия
+    res = QObject::connect (this, &TestPlotPresenter::gr_startAction,  gr_obj, &GenRandom::doActionSlot); Q_ASSERT_X (res, "connect", "connection is not established");	// установка сигнала запуска действия
     res = QObject::connect (this, &TestPlotPresenter::finished,  gr_obj, &GenRandom::doTerminateSlot);    Q_ASSERT_X (res, "connect", "connection is not established");	// закрытие этого объекта хакрывает объект в потоке
 
     res = QObject::connect (gr_obj, &GenRandom::finished, this, &TestPlotPresenter::finished);            Q_ASSERT_X (res, "connect", "connection is not established");	// конец операции завершает работу приложения
-    res = QObject::connect (gr_obj, &GenRandom::changed,  this, &TestPlotPresenter::gr_doChangedSlot);          Q_ASSERT_X (res, "connect", "connection is not established");	// установка значения в данном потоке
+    res = QObject::connect (gr_obj, &GenRandom::changed,  this, &TestPlotPresenter::gr_doChangedSlot);    Q_ASSERT_X (res, "connect", "connection is not established");	// установка значения в данном потоке
 
     //res = QObject::connect (&_btn, &QPushButton::clicked, _obj, &Operation::terminate);		Q_ASSERT_X (res, "connect", "connection is not established");	// остановка работы потока
 
