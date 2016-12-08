@@ -15,13 +15,13 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     //MainWindow mainWin;
 
-    MainWindow *view = new MainWindow();
+    MainWindow *mainWin = new MainWindow();
 
-    TestPlotPresenter *presenter = new TestPlotPresenter(view);
+    TestPlotPresenter *presenter = new TestPlotPresenter(mainWin);
     Q_UNUSED(presenter);
     //mainWin.show();
 
-    view->show();
+    mainWin->show();
 
     // Нужно отправлять сигнал, о завершении работы программы, в наши дополнительны(й/е) поток(и)
     //res = QObject::connect (&app, SIGNAL (lastWindowClosed ()), &mainWin, SLOT (terminate ())); Q_ASSERT_X (res, "connect", "connection is not established");
