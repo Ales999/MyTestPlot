@@ -2,6 +2,7 @@
 #include <QApplication>
 
 #include "testplotpresenter.h"
+#include "depthmodelpresenter.h"
 
 // **  https://habrahabr.ru/post/203254/
 // ** #include "ThreadedObject.h"
