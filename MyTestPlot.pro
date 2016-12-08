@@ -53,7 +53,8 @@ SOURCES += main.cpp\
     genrandom.cpp \
     testplotmodel.cpp \
     testplotpresenter.cpp \
-    depthitem.cpp
+    depthitem.cpp \
+    depthmodel.cpp
 
 HEADERS  += mainwindow.h \
          qcustomplot.h \
@@ -62,6 +63,7 @@ HEADERS  += mainwindow.h \
     testplotmodel.h \
     testplotpresenter.h \
     itestplotview.h \
-    depthitem.h
+    depthitem.h \
+    depthmodel.h
 
 FORMS    += mainwindow.ui
