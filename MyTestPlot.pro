@@ -4,12 +4,22 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+lessThan(QT_VERSION, 5.5): {
+error("Qt less than 5.5 is no longer supported. In order to compile Qt Bitcoin Trader you need update to Qt 5.5 and C++11");
+}
 
-CONFIG	+= qt
+TEMPLATE	= app
+LANGUAGE	= C++
+DEPENDPATH	+= .
+INCLUDEPATH	+= .
+INCLUDEPATH += $$[QT_INSTALL_PREFIX]/src/3rdparty/zlib
+
+#CONFIG	+= qt release
+CONFIG	+= qt debug
 CONFIG	+= c++11
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
+QT      += core gui
+QT      += network script printsupport widgets
 
 ## ---------------------------
 # http://stackoverflow.com/questions/24243176/how-to-specify-target-mac-os-x-version-using-qmake
@@ -33,13 +43,13 @@ macx {
 
 ## ---------------------------------
 
-#mac{
+mac{
 #LIBS+= -dead_strip
-#QMAKE_MAC_SDK = macosx10.12
+QMAKE_MAC_SDK = macosx10.12
 
 #LIBS += -framework CoreFoundation
 #LIBS += -framework ApplicationServices
-#}
+}
 
 ## ---------------------------------
 
@@ -55,7 +65,8 @@ SOURCES += main.cpp\
     testplotpresenter.cpp \
     depthitem.cpp \
     depthmodel.cpp \
-    depthmodelpresenter.cpp
+    depthmodelpresenter.cpp \
+    currencypairitem.cpp
 
 HEADERS  += mainwindow.h \
          qcustomplot.h \
@@ -67,6 +78,8 @@ HEADERS  += mainwindow.h \
     depthitem.h \
     depthmodel.h \
     depthmodelpresenter.h \
-    main.h
+    main.h \
+    currencypairitem.h \
+    currencyinfo.h
 
 FORMS    += mainwindow.ui

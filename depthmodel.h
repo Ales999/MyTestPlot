@@ -36,6 +36,9 @@ private:
     QList<double> sizePriceList;
     QList<int> directionList;
 
+    double groupedPrice;
+    double groupedVolume;
+
     // Обновляем ордер
     void depthUpdateOrder(DepthItem item);
     void sizeListRemoveAt(int);

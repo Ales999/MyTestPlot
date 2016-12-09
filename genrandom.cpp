@@ -17,12 +17,14 @@ GenRandom::GenRandom(QObject *parent) : QObject(parent), data(new GenRandomData)
 {
     qRegisterMetaType<NewGenData>("NewGenData");
 
+    _int_timer = 0;
+
     qDebug()<<"From worker thread: " << QThread::currentThreadId();
 }
 
 GenRandom::GenRandom(const GenRandom &rhs) : data(rhs.data)
 {
-
+    _int_timer = 0;
 }
 
 GenRandom &GenRandom::operator=(const GenRandom &rhs)

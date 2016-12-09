@@ -29,6 +29,11 @@ int main(int argc, char *argv[])
     // Первоначальная инициализация стуктуры данными
     baseValues.Construct();
 
+    CurencyInfo newCurr;
+
+    baseValues.currentPair.currASign=baseValues.currencyMap.value("BTC",CurencyInfo("BTC")).sign;
+    baseValues.currentPair.currBSign=baseValues.currencyMap.value(baseValues.currentPair.currBStr,CurencyInfo("$")).sign;
+
     QApplication app(argc, argv);
     MainWindow *mainWin = new MainWindow();
 

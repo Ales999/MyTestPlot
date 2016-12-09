@@ -49,11 +49,10 @@ void TestPlotPresenter::gr_doChangedSlot(const QMap<double, double> &newData)
 {
     QString strKey ="";
     QString toSend;         // Что будем отправлять в окно
-    double  dataVol = 0;
-
 
     if( !newData.isEmpty())
     {
+        double  dataVol;
         strKey = QDateTime::fromTime_t( newData.firstKey() ).toString( baseValues.timeFormat );
         dataVol = newData.value(newData.firstKey());
         //qDebug() << "gr_doChangedSlot: " << QDateTime::fromTime_t( newData.firstKey() ).toUTC().toString("hh:mm:ss")  << " : " << newData.value(newData.firstKey()) ;
