@@ -53,3 +53,12 @@ void Exchange::setupApi(DepthModelPresenter *mainClass, bool tickerOnly)
 {
 
 }
+
+// virtual, not needed implemant
+void Exchange::buy(QString, double, double)
+{
+}
+// virtual, not needed implemant
+void Exchange::sell(QString, double, double)
+{
+}

@@ -28,3 +28,33 @@ void Exchange_Random::depthUpdateOrder(QString symbol, double price, double amou
             (*depthBids)<<newItem;
     }
 }
+
+void Exchange_Random::depthSubmitOrder(QString symbol, QMap<double, double> *currentMap, double priceDouble, double amount, bool isAsk)
+{
+    if(symbol!=baseValues.currentPair.symbol)return;
+
+    if(priceDouble==0.0||amount==0.0)return;
+
+    if(isAsk)
+    {
+        (*currentMap)[priceDouble]=amount;
+        if(lastDepthAsksMap.value(priceDouble,0.0)!=amount)
+            depthUpdateOrder(symbol,priceDouble,amount,true);
+    }
+    else
+    {
+        (*currentMap)[priceDouble]=amount;
+        if(lastDepthBidsMap.value(priceDouble,0.0)!=amount)
+            depthUpdateOrder(symbol,priceDouble,amount,false);
+    }
+}
+
+void Exchange_Random::buy(QString, double, double)
+{
+
+}
+
+void Exchange_Random::sell(QString, double, double)
+{
+
+}

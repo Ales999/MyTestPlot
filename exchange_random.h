@@ -18,6 +18,11 @@ private:
     QMap<double,double> lastDepthBidsMap;
 
     void depthUpdateOrder(QString symbol, double price, double amount, bool isAsk);
+    void depthSubmitOrder(QString symbol, QMap<double,double> *currentMap ,double priceDouble, double amount, bool isAsk);
+
+public slots:
+    void buy(QString, double, double);
+    void sell(QString, double, double);
 };
 
 #endif // EXCHANGE_RANDOM_H

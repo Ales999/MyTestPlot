@@ -48,6 +48,11 @@ public:
 
 private:
     void run();
+
+public slots:
+    virtual void buy(QString, double, double);
+    virtual void sell(QString, double, double);
+
 };
 
 #endif // EXCHANGE_H
