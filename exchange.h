@@ -45,6 +45,9 @@ public:
     void setupApi(DepthModelPresenter *, bool tickerOnly=false);
     Exchange();
     ~Exchange();
+
+private:
+    void run();
 };
 
 #endif // EXCHANGE_H
