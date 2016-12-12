@@ -66,7 +66,8 @@ SOURCES += main.cpp\
     depthitem.cpp \
     depthmodel.cpp \
     depthmodelpresenter.cpp \
-    currencypairitem.cpp
+    currencypairitem.cpp \
+    exchange.cpp
 
 HEADERS  += mainwindow.h \
          qcustomplot.h \
@@ -80,6 +81,7 @@ HEADERS  += mainwindow.h \
     depthmodelpresenter.h \
     main.h \
     currencypairitem.h \
-    currencyinfo.h
+    currencyinfo.h \
+    exchange.h
 
 FORMS    += mainwindow.ui
