@@ -35,12 +35,16 @@
 #include <QObject>
 #include <QThread>
 
+#include "depthmodelpresenter.h"
+
 class Exchange : public QThread
 {
     Q_OBJECT
 
 public:
+    void setupApi(DepthModelPresenter *, bool tickerOnly=false);
     Exchange();
+    ~Exchange();
 };
 
 #endif // EXCHANGE_H

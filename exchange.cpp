@@ -33,5 +33,17 @@
 
 Exchange::Exchange()
 {
+    qDebug("Created Exchange\n");
+    moveToThread(this);
+}
+
+Exchange::~Exchange()
+{
+    qDebug() << "Exchange class dismiss";
+
+}
+
+void Exchange::setupApi(DepthModelPresenter *mainClass, bool tickerOnly)
+{
 
 }
