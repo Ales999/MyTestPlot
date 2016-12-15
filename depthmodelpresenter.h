@@ -6,6 +6,10 @@
 #include "depthmodel.h"
 #include "itestplotview.h"
 
+QT_BEGIN_NAMESPACE
+class QAbstractItemModel;
+QT_END_NAMESPACE
+
 class DepthModelPresenter : public QObject
 {
     Q_OBJECT
@@ -14,10 +18,17 @@ public:
 
 private:
 
-    DepthModel      *d_model;
+    //DepthModel      *d_model;
+    DepthModel      *depthAsksModel;
+    DepthModel      *depthBidsModel;
+    // TODO: next
+    //TradesModel *tradesModel;
+    //HistoryModel *historyModel;
+
     ITestPlotView   *m_view;
 
-
+    // for test
+   QAbstractItemModel *model;
 
 signals:
 

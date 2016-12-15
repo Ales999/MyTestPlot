@@ -27,6 +27,11 @@ public:
     ~MainWindow();
 
     void setStatusBarMassage(QString message) const;
+    void setAskTable(DepthModel *askModel) const;
+    void setBidTable(DepthModel *bidModel) const;
+
+    // for test
+    void setAskTable(QAbstractItemModel *model) const;
 
     double my_rand();
     double my_rand(int accuracy);

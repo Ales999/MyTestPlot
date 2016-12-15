@@ -42,6 +42,11 @@ class Exchange : public QThread
     Q_OBJECT
 
 public:
+
+    QByteArray lastDepthData;
+    QByteArray lastHistory;
+    QByteArray lastOrders;
+
     void setupApi(DepthModelPresenter *, bool tickerOnly=false);
     Exchange();
     ~Exchange();
@@ -50,8 +55,10 @@ private:
     void run();
 
 public slots:
+    virtual void getHistory(bool force);
     virtual void buy(QString, double, double);
     virtual void sell(QString, double, double);
+    virtual void cancelOrder(QString, QByteArray);
 
 };
 

@@ -30,6 +30,7 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "depthmodel.h"
+#include <QTimer>
 
 DepthModel::DepthModel(bool isAskData)
 {
@@ -40,6 +41,12 @@ DepthModel::DepthModel(bool isAskData)
     columnsCount = 0;
     groupedPrice = 0.0;
     groupedVolume = 0.0;
+
+    QVector<int> qtemp1, qtemp2;
+    qtemp1 << 1 << 2;
+    qtemp2 << 4 << 5;
+
+    dataset << qtemp1 << qtemp2; // .insert(0, qtemp);
 }
 
 // ====================================================================================
@@ -59,14 +66,17 @@ QModelIndex DepthModel::parent(const QModelIndex &) const
 
 int DepthModel::rowCount(const QModelIndex &) const
 {
-    return priceList.count()+grouped;
+    return dataset.size(); // .count(); // 8; // Simple test
+    //return priceList.count()+grouped;
 }
 
 int DepthModel::columnCount(const QModelIndex &) const
 {
-    return columnsCount;
+    return 2; // Simple test
+    //return columnsCount;
 }
 
+/*
 QVariant DepthModel::data(const QModelIndex &index, int role) const
 {
     if(!index.isValid())return QVariant();
@@ -133,8 +143,8 @@ QVariant DepthModel::data(const QModelIndex &index, int role) const
     {
         if(indexColumn==1)
         {
-            double volume=volumeList.at(currentRow);
-            double smallValue=baseValues.currentPair.currAInfo.valueSmall;
+            //?double volume=volumeList.at(currentRow);
+            //?double smallValue=baseValues.currentPair.currAInfo.valueSmall;
             //?if(volume<=smallValue)return baseValues.appTheme.gray; smallValue*=10.0;
             //?if(volume<=smallValue)return baseValues.appTheme.black; smallValue*=10.0;
             //?if(volume<=smallValue)return baseValues.appTheme.darkGreen; smallValue*=10.0;
@@ -196,20 +206,58 @@ QVariant DepthModel::data(const QModelIndex &index, int role) const
     if(!returnText.isEmpty())return returnText;
     return QVariant();
 }
+*/
 
+// ------------------
+// Start Simple test
+QVariant DepthModel::data(const QModelIndex &index, int role) const
+{
+    if (!index.isValid())
+        return QVariant();
+
+    if (role == Qt::TextAlignmentRole)
+    {
+        return int(Qt::AlignRight | Qt::AlignVCenter);
+    }
+    else if (role == Qt::DisplayRole)
+    {
+        // problem solved, I forgot the Qt::EditRole
+        return dataset[index.row()][index.column()];
+    }
+    else if(role == Qt::EditRole)
+    {
+        QString str = (QString)dataset[index.row()][index.column()];
+        return str;
+    }
+
+    return QVariant();
+}
+
+bool DepthModel::setData(const QModelIndex &index,
+                        const QVariant &value, int role)
+{
+    if (index.isValid() && role == Qt::EditRole)
+    {
+        if (value.toString().isEmpty()) return false;
+        dataset[index.row()][index.column()] = value.toInt();
+        QModelIndex transposedIndex = createIndex(index.column(),
+                                                  index.row());
+        emit dataChanged(index, index);
+        emit dataChanged(transposedIndex, transposedIndex);
+        return true;
+    }
+    return false;
+}
+
+// End   Simple test
+// ------------------
+
+//               End   implementation from base class 'QAbstractItemModel'
 // ========================================================================================
 
 void DepthModel::setAsk(bool on)
 {
     isAsk=on;
-}
-
-void DepthModel::depthUpdateOrders(QList<DepthItem> *items)
-{
-    if(items==0)return;
-    for(int n=0;n<items->count();n++) depthUpdateOrder( items->at(n) );
-    delete items;
-    //calculateSize();  // TODO: implement and enable this line
 }
 
 double &DepthModel::sizeListAt(int row)
@@ -225,7 +273,85 @@ void DepthModel::sizeListRemoveAt(int row)
     sizeList.removeAt(row);
 }
 
+void DepthModel::reloadVisibleItems()
+{
+    QTimer::singleShot(100,this,SLOT(delayedReloadVisibleItems()));
+}
 
+void DepthModel::delayedReloadVisibleItems()
+{
+    emit dataChanged(index(0,0),index(priceList.count()-1,columnsCount-1));
+}
+
+void DepthModel::calculateSize()
+{
+    if(!somethingChanged)return;
+    somethingChanged=true;
+
+    double maxPrice=0.0;
+    double maxVolume=0.0;
+    double maxTotal=0.0;
+
+    double totalSize=0.0;
+    double totalPrice=0.0;
+
+    if(originalIsAsk)
+    {
+        for(int n=0;n<priceList.count();n++)
+        {
+            int currentRow=n;
+            if(!originalIsAsk)currentRow=priceList.count()-currentRow-1;
+
+            totalSize+=volumeList.at(currentRow);
+            totalPrice+=volumeList.at(currentRow)*priceList.at(currentRow);
+
+            sizeListAt(currentRow)=totalSize;
+            sizePriceList[currentRow]=totalPrice;
+            //sizeListStr[currentRow]=textFromDouble(totalSize,qMin(baseValues.currentPair.currADecimals,baseValues.decimalsTotalOrderBook));
+
+            maxPrice=qMax(maxPrice,priceList.at(currentRow));
+            maxVolume=qMax(maxVolume,volumeList.at(currentRow));
+            maxTotal=qMax(maxTotal,sizeListAt(currentRow));
+        }
+    }
+    else
+    {
+        for(int n=priceList.count()-1;n>=0;n--)
+        {
+            int currentRow=n;
+            if(originalIsAsk)currentRow=priceList.count()-currentRow-1;
+            totalSize+=volumeList.at(currentRow);
+            totalPrice+=volumeList.at(currentRow)*priceList.at(currentRow);
+            sizeListAt(currentRow)=totalSize;
+            sizePriceList[currentRow]=totalPrice;
+            //sizeListStr[currentRow]=textFromDouble(totalSize,qMin(baseValues.currentPair.currADecimals,baseValues.decimalsTotalOrderBook));
+
+            maxPrice=qMax(maxPrice,priceList.at(currentRow));
+            maxVolume=qMax(maxVolume,volumeList.at(currentRow));
+            maxTotal=qMax(maxTotal,sizeListAt(currentRow));
+        }
+    }
+
+    //?widthPrice=10+textFontWidth(textFromDouble(maxPrice,baseValues.currentPair.priceDecimals));
+    //?widthVolume=10+textFontWidth(textFromDouble(maxVolume,baseValues.currentPair.currADecimals));
+    //?widthSize=10+textFontWidth(textFromDouble(maxTotal,baseValues.currentPair.currADecimals));
+
+    //?widthPrice=qMax(widthPrice,widthPriceTitle);
+    //?widthVolume=qMax(widthVolume,widthVolumeTitle);
+    //?widthSize=qMax(widthSize,widthSizeTitle);
+
+    int sizeColumn=2;
+    if(isAsk)sizeColumn=1;
+    emit dataChanged(index(0,sizeColumn),index(priceList.count()-1,sizeColumn));
+}
+
+void DepthModel::depthUpdateOrders(QList<DepthItem> *items)
+{
+    if(items==0)return;
+    for(int n=0;n<items->count();n++) depthUpdateOrder( items->at(n) );
+    delete items;
+    calculateSize();
+}
 
 
 void DepthModel::depthUpdateOrder(DepthItem item)

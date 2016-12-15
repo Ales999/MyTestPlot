@@ -40,6 +40,22 @@ void MainWindow::setStatusBarMassage(QString message) const
                     ,0);
 }
 
+void MainWindow::setAskTable(DepthModel *askModel) const
+{
+    ui->depthAsksTable->setModel(askModel);
+}
+
+void MainWindow::setAskTable(QAbstractItemModel *model) const
+{
+    ui->depthAsksTable->setModel(model);
+}
+
+void MainWindow::setBidTable(DepthModel *bidModel) const
+{
+    ui->depthBidsTable->setModel(bidModel);
+}
+
+
 double MainWindow::my_rand()
 {
     return (double)( qrand()/(double)RAND_MAX-0.5 )*3;

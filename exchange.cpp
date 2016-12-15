@@ -51,14 +51,24 @@ void Exchange::run()
 
 void Exchange::setupApi(DepthModelPresenter *mainClass, bool tickerOnly)
 {
-
+    Q_UNUSED(mainClass);
+    Q_UNUSED(tickerOnly);
 }
 
+// virtual, not needed implemant
+void Exchange::getHistory(bool force)
+{
+    Q_UNUSED(force);
+}
 // virtual, not needed implemant
 void Exchange::buy(QString, double, double)
 {
 }
 // virtual, not needed implemant
 void Exchange::sell(QString, double, double)
+{
+}
+// virtual, not needed implemant
+void Exchange::cancelOrder(QString, QByteArray)
 {
 }

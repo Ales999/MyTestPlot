@@ -6,6 +6,10 @@
 #include "depthitem.h"
 #include "main.h"
 
+///
+/// \brief The DepthModel class
+/// Общий класс модели для Ask и Bid (для каждого свой объект будет)
+///
 class DepthModel : public QAbstractItemModel
 {
 public:
@@ -19,7 +23,9 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
     // End Impl
 
+    void reloadVisibleItems();
     void setAsk(bool on);
+    void calculateSize();
 
     // Обновляем ордера
     void depthUpdateOrders(QList<DepthItem> *items);
@@ -29,6 +35,11 @@ private:
     int columnsCount;
     bool originalIsAsk;
     bool somethingChanged;
+
+    // For test
+    QVector<QVector<int> > dataset;
+    bool setData(const QModelIndex &index, const QVariant &value, int role);
+    // End test
 
     QList<double> priceList;
     QList<double> volumeList;
@@ -44,6 +55,8 @@ private:
     void sizeListRemoveAt(int);
     double &sizeListAt(int);
 
+private slots:
+    void delayedReloadVisibleItems();
 
 };
 
