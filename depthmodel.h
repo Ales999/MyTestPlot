@@ -1,6 +1,8 @@
 #ifndef DEPTHMODEL_H
 #define DEPTHMODEL_H
 
+#pragma once
+
 #include <QAbstractItemModel>
 #include <QStringList>
 #include "depthitem.h"

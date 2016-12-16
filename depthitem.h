@@ -1,6 +1,8 @@
 #ifndef DEPTHITEM_H
 #define DEPTHITEM_H
 
+#pragma once
+
 #include <QString>
 
 struct DepthItem
