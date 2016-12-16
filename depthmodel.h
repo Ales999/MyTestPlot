@@ -39,6 +39,7 @@ private:
     // For test
     QVector<QVector<int> > dataset;
     bool setData(const QModelIndex &index, const QVariant &value, int role);
+    QVariant headerData(int nSection,  Qt::Orientation orientation, int nRole ) const;
     // End test
 
     QList<double> priceList;

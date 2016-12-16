@@ -13,9 +13,12 @@ DepthModelPresenter::DepthModelPresenter( ITestPlotView *view, QObject *parent)
 //    depthAsksModel->isAsk = true;
 //    depthBidsModel->isAsk = false;
 
-    depthBidsModel->setHeaderData(0, Qt::Horizontal, tr("MyTest"));
-    depthBidsModel->setHeaderData(1, Qt::Horizontal, tr("Volume"));
+//    depthBidsModel->setHeaderData(0, Qt::Horizontal, tr("MyTest"));
+//    depthBidsModel->setHeaderData(1, Qt::Horizontal, tr("Volume"));
+//    depthBidsModel->setHorizontalHeaderItem
+//    emit depthBidsModel->headerDataChanged(Qt::Horizontal, 0, 1);
     view->setBidTable(depthBidsModel);
+
 
 /*
     // test insert

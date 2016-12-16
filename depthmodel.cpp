@@ -42,11 +42,12 @@ DepthModel::DepthModel(bool isAskData)
     groupedPrice = 0.0;
     groupedVolume = 0.0;
 
-    QVector<int> qtemp1, qtemp2;
+    QVector<int> qtemp1, qtemp2, qtemp3;
     qtemp1 << 1 << 2;
     qtemp2 << 4 << 5;
+    qtemp3 << 3 << 8;
 
-    dataset << qtemp1 << qtemp2; // .insert(0, qtemp);
+    dataset << qtemp1 << qtemp2 << qtemp3; // .insert(0, qtemp);
 }
 
 // ====================================================================================
@@ -74,6 +75,25 @@ int DepthModel::columnCount(const QModelIndex &) const
 {
     return 2; // Simple test
     //return columnsCount;
+}
+// Simple test, set header data
+QVariant DepthModel::headerData( int nSection,
+                                 Qt::Orientation orientation,
+                                 int nRole ) const
+{
+    if( nRole == Qt::DisplayRole )
+    {    // Если представление запрашивает надпись для горизонтального заголовка, то возвращаем строку
+        if(orientation == Qt ::Horizontal) {
+            switch( nSection )
+            {
+            case 0: return( QString( "property" ) );
+            case 1: return( QString( "type" ) );
+            case 2: return( QString( "value" ) );
+            }
+        } else // Иначе возвращаем номер секции
+            return QString::number(nSection);
+    }
+    return QAbstractItemModel::headerData( nSection, orientation, nRole );
 }
 
 /*
