@@ -55,10 +55,10 @@ private:
     void run();
 
 public slots:
-    virtual void getHistory(bool force);
-    virtual void buy(QString, double, double);
-    virtual void sell(QString, double, double);
-    virtual void cancelOrder(QString, QByteArray);
+    virtual void getHistory(bool force) = 0;
+    virtual void buy(QString symbol,  double apiBtcToBuy,  double apiPriceToBuy) = 0;
+    virtual void sell(QString symbol, double apiBtcToSell, double apiPriceToSell) = 0;
+    virtual void cancelOrder(QString symbol, QByteArray order) = 0;
 
 };
 

@@ -55,6 +55,7 @@ void Exchange::setupApi(DepthModelPresenter *mainClass, bool tickerOnly)
     Q_UNUSED(tickerOnly);
 }
 
+/*
 // virtual, not needed implemant
 void Exchange::getHistory(bool force)
 {
@@ -72,3 +73,4 @@ void Exchange::sell(QString, double, double)
 void Exchange::cancelOrder(QString, QByteArray)
 {
 }
+*/
