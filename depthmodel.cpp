@@ -30,6 +30,7 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "depthmodel.h"
+#include "julymath.h"
 #include <QTimer>
 
 DepthModel::DepthModel(bool isAskData)
@@ -38,16 +39,17 @@ DepthModel::DepthModel(bool isAskData)
     isAsk=isAskData;
     originalIsAsk=isAsk;
 
-    columnsCount = 0;
+    columnsCount = 2;
     groupedPrice = 0.0;
     groupedVolume = 0.0;
-
+    /*
     QVector<int> qtemp1, qtemp2, qtemp3;
     qtemp1 << 1 << 2;
     qtemp2 << 4 << 5;
     qtemp3 << 3 << 8;
 
     dataset << qtemp1 << qtemp2 << qtemp3; // .insert(0, qtemp);
+    */
 }
 
 // ====================================================================================
@@ -67,14 +69,13 @@ QModelIndex DepthModel::parent(const QModelIndex &) const
 
 int DepthModel::rowCount(const QModelIndex &) const
 {
-    return dataset.size(); // .count(); // 8; // Simple test
-    //return priceList.count()+grouped;
+    //return dataset.size(); // .count(); // 8; // Simple test
+    return priceList.count()+grouped;
 }
 
 int DepthModel::columnCount(const QModelIndex &) const
 {
-    return 2; // Simple test
-    //return columnsCount;
+    return columnsCount;
 }
 // Simple test, set header data
 QVariant DepthModel::headerData( int nSection,
@@ -86,8 +87,8 @@ QVariant DepthModel::headerData( int nSection,
         if(orientation == Qt ::Horizontal) {
             switch( nSection )
             {
-            case 0: return( QString( "property" ) );
-            case 1: return( QString( "type" ) );
+            case 0: return( QString( "Price" ) );
+            case 1: return( QString( "Volume" ) );
             case 2: return( QString( "value" ) );
             }
         } else // Иначе возвращаем номер секции
@@ -235,21 +236,62 @@ QVariant DepthModel::data(const QModelIndex &index, int role) const
     if (!index.isValid())
         return QVariant();
 
+    int currentRow=index.row();
+    int indexColumn=index.column();
+
+    if(role!=Qt::DisplayRole&&role!=Qt::ToolTipRole&&role!=Qt::StatusTipRole&&role!=Qt::ForegroundRole&&role!=Qt::BackgroundRole&&role!=Qt::TextAlignmentRole)return QVariant();
+    if(currentRow<0||currentRow>=priceList.count())return QVariant();
+
+    if(grouped&&currentRow<2)
+    {
+        //if(role==Qt::ForegroundRole)return baseValues.appTheme.black;
+        if(currentRow==1||groupedPrice==0.0)return QVariant();
+        QString firstRowText;
+        switch(indexColumn)
+        {
+        case 0: //Price
+                firstRowText=textFromDouble(groupedPrice);
+                if(role==Qt::ToolTipRole)firstRowText.prepend(baseValues.currentPair.currBSign);
+                break;
+        case 1: //Volume
+                firstRowText=textFromDouble(groupedVolume,baseValues.currentPair.currADecimals);
+                if(role==Qt::ToolTipRole)firstRowText.prepend(baseValues.currentPair.currASign);
+                break;
+        }
+        if(firstRowText.isEmpty())return QVariant();
+        return firstRowText;
+    }
+
     if (role == Qt::TextAlignmentRole)
     {
-        return int(Qt::AlignRight | Qt::AlignVCenter);
+        if(indexColumn==0)return int(Qt::AlignLeft |  Qt::AlignVCenter);    // 0x0081;
+        if(indexColumn==1)return int(Qt::AlignRight | Qt::AlignVCenter);    // 0x0082;
+        if(indexColumn==3)return int(Qt::AlignRight | Qt::AlignVCenter);    // 0x0082;
+        return int(Qt::AlignHCenter | Qt::AlignVCenter);                    // 0x0084;
     }
     else if (role == Qt::DisplayRole)
     {
+        switch(indexColumn)
+        {
+        case 0://Price
+            return priceList.at(currentRow);
+        case 1://Volume
+            return volumeList.at(currentRow);
+        default:
+            break;
+        }
+
         // problem solved, I forgot the Qt::EditRole
-        return dataset[index.row()][index.column()];
+        //return dataset[index.row()][index.column()];
+
     }
+    /*
     else if(role == Qt::EditRole)
     {
         QString str = (QString)dataset[index.row()][index.column()];
         return str;
     }
-
+    */
     return QVariant();
 }
 
@@ -274,6 +316,17 @@ bool DepthModel::setData(const QModelIndex &index,
 
 //               End   implementation from base class 'QAbstractItemModel'
 // ========================================================================================
+
+
+// ----------------------------------------------------------------------------------------
+// http://ru.stackoverflow.com/questions/570755/qabstractitemmodelindex
+bool DepthModel::hasIndex(int row, int column, const QModelIndex &parent) const
+{
+    if(row < 0 || column < 0)
+            return false;
+        return row < rowCount(parent) && column < columnCount(parent);
+}
+
 
 void DepthModel::setAsk(bool on)
 {

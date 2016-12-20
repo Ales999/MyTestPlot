@@ -84,6 +84,7 @@ HEADERS  += mainwindow.h \
     currencypairitem.h \
     currencyinfo.h \
     exchange.h \
-    exchange_random.h
+    exchange_random.h \
+    julymath.h
 
 FORMS    += mainwindow.ui

@@ -17,13 +17,16 @@ class DepthModel : public QAbstractItemModel
 public:
     DepthModel(bool isAskData=true);
 
-    // Impl from QAbstractItemModel
+    // ---=== Impl from QAbstractItemModel ===---
     QModelIndex index(int row, int column, const QModelIndex &parent=QModelIndex()) const;
     QModelIndex parent(const QModelIndex &index) const;
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
-    // End Impl
+    // ---=== End Impl ===---
+
+    // http://ru.stackoverflow.com/questions/570755/qabstractitemmodelindex
+    bool hasIndex(int row, int column, const QModelIndex &parent) const;
 
     void reloadVisibleItems();
     void setAsk(bool on);
