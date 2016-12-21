@@ -68,7 +68,8 @@ SOURCES += main.cpp\
     depthmodelpresenter.cpp \
     currencypairitem.cpp \
     exchange.cpp \
-    exchange_random.cpp
+    exchange_random.cpp \
+    randtwister.cpp
 
 HEADERS  += mainwindow.h \
          qcustomplot.h \
@@ -85,6 +86,7 @@ HEADERS  += mainwindow.h \
     currencyinfo.h \
     exchange.h \
     exchange_random.h \
-    julymath.h
+    julymath.h \
+    randtwister.h
 
 FORMS    += mainwindow.ui
