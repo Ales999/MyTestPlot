@@ -45,10 +45,24 @@ void TestPlotPresenter::gr_terminateSlot()
     emit finished ();
 }
 
+#include "randtwister.h"
+
 void TestPlotPresenter::gr_doChangedSlot(const QMap<double, double> &newData)
 {
+    double twrand =0.0;
     QString strKey ="";
     QString toSend;         // Что будем отправлять в окно
+    RandTwister *twist = new RandTwister();
+
+    //uint32_t _tw = twist->ExtractU32();
+    // Shift, example, '>> 13': 3645644232 ---> 445024
+    //ptrdiff_t l_twr = ptrdiff_t(_tw) >> 13;
+    //uint32_t l_twr = _tw >> 13;
+    //l_twr/100000000
+    twrand =  twist->GetRandVolume();
+
+    QString twstr =QString::number(twrand,'g',8);
+    delete twist;
 
     if( !newData.isEmpty())
     {
@@ -57,7 +71,7 @@ void TestPlotPresenter::gr_doChangedSlot(const QMap<double, double> &newData)
         dataVol = newData.value(newData.firstKey());
         //qDebug() << "gr_doChangedSlot: " << QDateTime::fromTime_t( newData.firstKey() ).toUTC().toString("hh:mm:ss")  << " : " << newData.value(newData.firstKey()) ;
 
-        QTextStream(&toSend) << "TimeKey: " << strKey << " Data: " << dataVol;
+        QTextStream(&toSend) << "TimeKey: " << strKey << " Data: " << dataVol << "\tRandom number: " << twstr ;
 
         m_view->setStatusBarMassage(toSend);
 

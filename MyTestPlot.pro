@@ -23,10 +23,15 @@ QT      += network script printsupport widgets
 
 ## ---------------------------
 # http://stackoverflow.com/questions/24243176/how-to-specify-target-mac-os-x-version-using-qmake
-QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.12
+#QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.12
+QMAKE_CXXFLAGS += -Wall -Wextra -pedantic
+
+## ---------------------------------
 
 macx {
-    -mmacosx-version-min=10.12
+QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.12
+#This variable is used on macOS when building universal binaries.
+QMAKE_MAC_SDK = macosx10.12
 }
 
 ## -------- Homebrew Ta-Lib  ----------------
@@ -40,16 +45,6 @@ macx {
 
 ## ---------------------------------
 
-
-## ---------------------------------
-
-mac{
-#LIBS+= -dead_strip
-QMAKE_MAC_SDK = macosx10.12
-
-#LIBS += -framework CoreFoundation
-#LIBS += -framework ApplicationServices
-}
 
 ## ---------------------------------
 
