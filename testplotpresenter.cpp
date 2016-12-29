@@ -73,7 +73,7 @@ void TestPlotPresenter::gr_doChangedSlot(const QMap<double, double> &newData)
 
         QTextStream(&toSend) << "TimeKey: " << strKey << " Data: " << dataVol << "\tRandom number: " << twstr ;
 
-        m_view->setStatusBarMassage(toSend);
+        m_view->setStatusBarMessage(toSend);
 
     } else
         qDebug() << "newData is Empty !";

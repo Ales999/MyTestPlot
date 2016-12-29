@@ -12,7 +12,7 @@ class ITestPlotView
 {
 public:
     // http://stackoverflow.com/questions/23306790/why-am-i-getting-undefined-symbols-typeinfo-vtable-with-a-virtual-and
-    virtual void setStatusBarMassage(QString message) const = 0;
+    virtual void setStatusBarMessage(QString message) const = 0;
                                                         // ^^^^ making it pure virtual
     virtual void setAskTable(DepthModel *askModel) const = 0;
     virtual void setBidTable(DepthModel *bidModel) const = 0;

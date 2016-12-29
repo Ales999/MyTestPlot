@@ -26,7 +26,7 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-    void setStatusBarMassage(QString message) const;
+    void setStatusBarMessage(QString message) const;
     void setAskTable(DepthModel *askModel) const;
     void setBidTable(DepthModel *bidModel) const;
 

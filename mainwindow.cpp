@@ -32,7 +32,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 // From interface
-void MainWindow::setStatusBarMassage(QString message) const
+void MainWindow::setStatusBarMessage(QString message) const
 {
         ui->statusBar->showMessage(
           QString("%1")

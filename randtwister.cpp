@@ -45,7 +45,7 @@ double RandTwister::GetRandVolume()
 
     while (_tmp < RAND_TW_LMIN )
     {
-        _tmp = _tmp*2;
+        _tmp = _tmp * 3.1415926;
     }
 
     while(_tmp > RAND_TW_LMAX )
